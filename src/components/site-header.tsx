@@ -1,216 +1,352 @@
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  LayoutDashboard, LogOut, LogIn, UserCircle,
-  BookMarked, Library, MapPin, GraduationCap,
-  FolderOpen, Calendar, Info, Mail, Globe,
+  ArrowUpRight,
+  BookMarked,
+  Calendar,
   ChevronRight,
+  FolderOpen,
+  GraduationCap,
+  Info,
+  LayoutDashboard,
+  Library,
+  LogIn,
+  LogOut,
+  Mail,
+  MapPin,
+  Menu,
+  Search,
+  UserCircle,
+  X,
 } from "lucide-react";
 
-const nav = [
-  { to: "/library", label: "Library", search: {} as any },
-  { to: "/sites", label: "Demo Sites" },
+const primaryNav = [
+  { to: "/library", label: "Library" },
+  { to: "/sites", label: "Demo sites" },
   { to: "/training", label: "Training" },
-  { to: "/categories", label: "Categories" },
   { to: "/events", label: "Events" },
   { to: "/about", label: "About" },
+] as const;
+
+const mobileNav = [
+  ...primaryNav,
+  { to: "/categories", label: "Categories" },
   { to: "/contact", label: "Contact" },
 ] as const;
 
+const navLinkClass =
+  "relative rounded-lg px-3 py-2 text-sm font-semibold text-foreground/65 transition-colors hover:bg-secondary/70 hover:text-foreground";
+
 export function SiteHeader() {
   const { user, signOut, canManageContent } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [menuOpen]);
+
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <header className="sticky top-0 z-40">
-      {/* UNZA green top stripe */}
-      <div className="h-1 bg-primary" />
-      <div className="bg-background/90 backdrop-blur-md shadow-sm">
-        <div className="container-page flex h-16 items-center justify-between gap-4">
-          {/* Brand */}
-          <Link to="/" className="flex items-center gap-3 shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/8 ring-1 ring-primary/15">
-              <img src="/logo.png" alt="UNZA" className="h-8 w-auto object-contain" />
-            </div>
-            <span className="flex flex-col leading-tight">
-              <span className="font-display text-[15px] font-bold text-foreground tracking-tight">Sanitation Hub</span>
-              <span className="text-[10px] font-medium uppercase tracking-widest text-primary/70">University of Zambia</span>
-            </span>
-          </Link>
-
-          {/* Nav */}
-          <nav className="hidden items-center md:flex">
-            {nav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                search={"search" in item ? item.search : undefined}
-                className="relative px-3 py-2 text-sm font-medium text-foreground/65 transition-colors hover:text-foreground"
-                activeProps={{ className: "relative px-3 py-2 text-sm font-medium text-primary after:absolute after:bottom-0 after:left-3 after:right-3 after:h-0.5 after:rounded-full after:bg-primary" }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1.5">
-            {user && (
-              <Link to="/bookmarks" className="hidden md:inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors">
-                <BookMarked className="h-4 w-4" />
-                <span>Saved</span>
-              </Link>
-            )}
-            {user && (
-              <Link to="/profile" className="hidden md:inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors">
-                <UserCircle className="h-4 w-4" />
-                <span>Profile</span>
-              </Link>
-            )}
-            {canManageContent && (
-              <Link to="/admin" className="hidden md:inline-flex items-center gap-1.5 rounded-md bg-accent px-3.5 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90 transition-opacity">
-                <LayoutDashboard className="h-3.5 w-3.5" />
-                Admin
-              </Link>
-            )}
-            {user ? (
-              <button onClick={() => signOut()} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm text-foreground/70 hover:bg-secondary hover:text-foreground transition-colors">
-                <LogOut className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Sign out</span>
-              </button>
-            ) : (
-              <Link to="/auth" search={{ redirect: "/" } as any} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity shadow-sm">
-                <LogIn className="h-3.5 w-3.5" />
-                Sign in
-              </Link>
-            )}
+    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 shadow-[0_1px_12px_rgba(13,51,32,0.05)] backdrop-blur-xl">
+      <div className="hidden bg-[#0b3524] text-white md:block">
+        <div className="container-page flex h-8 items-center justify-between text-[11px] font-medium tracking-wide">
+          <span className="text-white/70">School of Engineering · University of Zambia</span>
+          <div className="flex items-center gap-5">
+            <Link to="/contact" className="text-white/70 transition-colors hover:text-white">
+              Contact
+            </Link>
+            <a
+              href="https://www.unza.zm"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-white/70 transition-colors hover:text-white"
+            >
+              UNZA website <ArrowUpRight className="h-3 w-3" />
+            </a>
           </div>
         </div>
       </div>
-      {/* UNZA ribbon — red + gold strips below nav */}
-      <div className="h-[5px] bg-red-700" />
-      <div className="h-[5px] bg-amber-400" />
+
+      <div className="container-page flex h-[72px] items-center justify-between gap-3">
+        <Link to="/" className="group flex min-w-0 shrink-0 items-center gap-3" onClick={closeMenu}>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-primary/10 bg-white p-1.5 shadow-sm transition-transform group-hover:scale-[1.03]">
+            <img
+              src="/logo.png"
+              alt="University of Zambia crest"
+              className="h-full w-auto object-contain"
+            />
+          </span>
+          <span className="min-w-0 leading-none">
+            <span className="block font-display text-[17px] font-bold tracking-tight text-foreground sm:text-lg">
+              Sanitation Hub
+            </span>
+            <span className="mt-1 hidden text-[9px] font-bold uppercase tracking-[0.16em] text-primary/70 min-[410px]:block">
+              Knowledge &amp; research platform
+            </span>
+          </span>
+        </Link>
+
+        <nav aria-label="Primary navigation" className="hidden items-center gap-0.5 xl:flex">
+          {primaryNav.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={navLinkClass}
+              activeProps={{
+                className:
+                  "relative rounded-lg bg-primary/8 px-3 py-2 text-sm font-semibold text-primary after:absolute after:inset-x-3 after:-bottom-[19px] after:h-[3px] after:rounded-full after:bg-accent",
+              }}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <Link
+            to="/search"
+            search={{ q: "" }}
+            aria-label="Search the repository"
+            className="hidden h-10 w-10 items-center justify-center rounded-lg text-foreground/60 transition-colors hover:bg-secondary hover:text-primary sm:inline-flex"
+          >
+            <Search className="h-[18px] w-[18px]" />
+          </Link>
+
+          {user && (
+            <Link
+              to="/bookmarks"
+              className="hidden items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground/65 transition-colors hover:bg-secondary hover:text-foreground 2xl:inline-flex"
+            >
+              <BookMarked className="h-4 w-4" /> Saved
+            </Link>
+          )}
+
+          {canManageContent && (
+            <Link
+              to="/admin"
+              className="hidden items-center gap-1.5 rounded-lg bg-accent px-3.5 py-2.5 text-sm font-bold text-accent-foreground shadow-sm transition-transform hover:-translate-y-0.5 2xl:inline-flex"
+            >
+              <LayoutDashboard className="h-4 w-4" /> Admin
+            </Link>
+          )}
+
+          {!user && (
+            <Link
+              to="/auth"
+              search={{ redirect: "/" }}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-3.5 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 sm:px-4"
+            >
+              <LogIn className="h-4 w-4" /> <span className="hidden sm:inline">Sign in</span>
+            </Link>
+          )}
+
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-navigation"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:border-primary/30 hover:bg-secondary xl:hidden"
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
+          {user && (
+            <button
+              type="button"
+              onClick={() => signOut()}
+              className="hidden h-10 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold text-foreground/65 transition-colors hover:bg-secondary hover:text-foreground xl:inline-flex"
+            >
+              <LogOut className="h-4 w-4" /> Sign out
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="h-[3px] bg-gradient-to-r from-primary via-accent to-primary" />
+
+      {menuOpen && (
+        <div
+          id="mobile-navigation"
+          className="absolute inset-x-0 top-full border-b border-border bg-card shadow-2xl xl:hidden"
+        >
+          <div className="container-page grid gap-6 py-5 md:grid-cols-[1fr_280px]">
+            <nav
+              aria-label="Mobile navigation"
+              className="grid grid-cols-2 gap-1 sm:grid-cols-3 md:grid-cols-4"
+            >
+              {mobileNav.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={closeMenu}
+                  className="rounded-xl px-3 py-3 text-sm font-semibold text-foreground/70 transition-colors hover:bg-secondary hover:text-primary"
+                  activeProps={{
+                    className: "rounded-xl bg-primary/10 px-3 py-3 text-sm font-bold text-primary",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+
+            {user && (
+              <div className="grid grid-cols-2 gap-2 border-t border-border pt-4 md:border-l md:border-t-0 md:pl-5 md:pt-0">
+                <Link
+                  to="/profile"
+                  onClick={closeMenu}
+                  className="inline-flex items-center gap-2 rounded-xl bg-secondary/70 px-3 py-3 text-sm font-semibold"
+                >
+                  <UserCircle className="h-4 w-4 text-primary" /> Profile
+                </Link>
+                <Link
+                  to="/bookmarks"
+                  onClick={closeMenu}
+                  className="inline-flex items-center gap-2 rounded-xl bg-secondary/70 px-3 py-3 text-sm font-semibold"
+                >
+                  <BookMarked className="h-4 w-4 text-primary" /> Saved
+                </Link>
+                {canManageContent && (
+                  <Link
+                    to="/admin"
+                    onClick={closeMenu}
+                    className="col-span-2 inline-flex items-center gap-2 rounded-xl bg-accent px-3 py-3 text-sm font-bold text-accent-foreground"
+                  >
+                    <LayoutDashboard className="h-4 w-4" /> Administration
+                  </Link>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    signOut();
+                  }}
+                  className="col-span-2 inline-flex items-center gap-2 rounded-xl border border-border px-3 py-3 text-sm font-semibold text-muted-foreground"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
 
 export function SiteFooter() {
   return (
-    <footer className="mt-20 border-t-2 border-primary" style={{ background: "linear-gradient(160deg, #0d3320 0%, #0a2318 60%, #071a12 100%)" }}>
-      {/* Main footer */}
-      <div className="container-page grid gap-10 py-14 md:grid-cols-4">
-
-        {/* Brand col */}
-        <div className="md:col-span-1">
-          {/* Logo in white box so it's fully visible */}
-          <div className="mb-4 inline-flex items-center gap-3 rounded-xl bg-white px-3 py-2 shadow-md">
-            <img src="/logo.png" alt="University of Zambia" className="h-12 w-auto object-contain" />
-            <div className="border-l border-gray-200 pl-3">
-              <div className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">UNZA</div>
-              <div className="text-sm font-bold text-gray-700 leading-tight">Sanitation Hub</div>
+    <footer className="border-t-[3px] border-accent bg-[#08281b] text-white">
+      <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.8fr_0.8fr_1.1fr] lg:gap-14 lg:py-16">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-white p-2 shadow-lg">
+              <img
+                src="/logo.png"
+                alt="University of Zambia"
+                className="h-full w-auto object-contain"
+              />
+            </span>
+            <div>
+              <p className="font-display text-lg font-bold">Sanitation Hub</p>
+              <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-accent">
+                University of Zambia
+              </p>
             </div>
           </div>
-          <p className="text-sm leading-relaxed text-green-100/60">
-            Centre of excellence for monitoring, evaluation, and research in decentralised sanitation systems at the University of Zambia.
+          <p className="mt-5 max-w-sm text-sm leading-6 text-white/60">
+            A national knowledge platform advancing research, capacity building and evidence-led
+            sanitation practice across Zambia.
           </p>
-          <div className="mt-5 flex flex-col gap-2 text-xs text-green-100/50">
-            <div className="flex items-center gap-2">
-              <div className="flex h-5 w-5 items-center justify-center rounded bg-green-800/60">
-                <Mail className="h-3 w-3 text-green-300" />
-              </div>
-              sanitation@unza.zm
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-5 w-5 items-center justify-center rounded bg-green-800/60">
-                <MapPin className="h-3 w-3 text-green-300" />
-              </div>
+        </div>
+
+        <FooterLinks
+          title="Explore"
+          links={[
+            { to: "/library", label: "Resource library", icon: Library },
+            { to: "/sites", label: "Demo sites", icon: MapPin },
+            { to: "/training", label: "Training", icon: GraduationCap },
+            { to: "/events", label: "Events", icon: Calendar },
+          ]}
+        />
+
+        <FooterLinks
+          title="Information"
+          links={[
+            { to: "/categories", label: "Categories", icon: FolderOpen },
+            { to: "/about", label: "About the Hub", icon: Info },
+            { to: "/faq", label: "Frequently asked", icon: ChevronRight },
+            { to: "/contact", label: "Contact us", icon: Mail },
+          ]}
+        />
+
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">Find us</p>
+          <address className="mt-5 space-y-3 not-italic text-sm leading-6 text-white/60">
+            <p>Department of Civil &amp; Environmental Engineering</p>
+            <p>
+              School of Engineering
+              <br />
               Great East Road Campus, Lusaka
-            </div>
-          </div>
-        </div>
-
-        {/* Explore col */}
-        <div>
-          <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-green-300/60">Explore</h4>
-          <ul className="space-y-3">
-            {[
-              { to: "/library", search: {} as any, icon: Library, label: "Resource Library" },
-              { to: "/sites", icon: MapPin, label: "Demonstration Sites" },
-              { to: "/training", icon: GraduationCap, label: "Training Programmes" },
-              { to: "/categories", icon: FolderOpen, label: "Browse Categories" },
-              { to: "/events", icon: Calendar, label: "Events & Workshops" },
-            ].map((item) => (
-              <li key={item.label}>
-                <Link
-                  to={item.to as any}
-                  search={"search" in item ? item.search : undefined}
-                  className="group flex items-center gap-2.5 text-sm text-green-100/55 hover:text-white transition-colors"
-                >
-                  <item.icon className="h-3.5 w-3.5 text-green-400 group-hover:text-green-300 transition-colors" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Institution col */}
-        <div>
-          <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-green-300/60">Institution</h4>
-          <ul className="space-y-3">
-            {[
-              { to: "/about", icon: Info, label: "About the Hub" },
-              { to: "/faq", icon: ChevronRight, label: "FAQ" },
-              { to: "/contact", icon: Mail, label: "Contact Us" },
-            ].map((item) => (
-              <li key={item.label}>
-                <Link
-                  to={item.to as any}
-                  className="group flex items-center gap-2.5 text-sm text-green-100/55 hover:text-white transition-colors"
-                >
-                  <item.icon className="h-3.5 w-3.5 text-green-400 group-hover:text-green-300 transition-colors" />
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <a
-                href="https://www.unza.zm"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2.5 text-sm text-green-100/55 hover:text-white transition-colors"
-              >
-                <Globe className="h-3.5 w-3.5 text-green-400 group-hover:text-green-300 transition-colors" />
-                UNZA Main Website
-              </a>
-            </li>
-          </ul>
-        </div>
-
-        {/* Contact col */}
-        <div>
-          <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-green-300/60">Department</h4>
-          <address className="not-italic space-y-1.5 text-sm leading-relaxed text-green-100/55">
-            <p className="font-semibold text-green-100/80">Dept. of Civil & Environmental Engineering</p>
-            <p>School of Engineering</p>
-            <p>University of Zambia</p>
-            <p>P.O. Box 32379, Lusaka, Zambia</p>
+            </p>
           </address>
           <a
             href="mailto:sanitation@unza.zm"
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-green-700/50 bg-green-900/40 px-3 py-2 text-sm text-green-300 hover:bg-green-800/50 hover:text-green-200 transition-colors"
+            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-white transition-colors hover:text-accent"
           >
-            <Mail className="h-3.5 w-3.5" />
-            sanitation@unza.zm
+            <Mail className="h-4 w-4 text-accent" /> sanitation@unza.zm
           </a>
         </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="border-t border-white/8 py-4">
-        <div className="container-page flex flex-col items-center justify-between gap-2 text-xs text-green-100/30 sm:flex-row">
-          <span>© {new Date().getFullYear()} University of Zambia. All rights reserved.</span>
-          <span>UNZA Decentralized Sanitation Systems Hub & Laboratory Repository</span>
+      <div className="border-t border-white/10">
+        <div className="container-page flex flex-col gap-2 py-5 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
+          <span>© {new Date().getFullYear()} University of Zambia</span>
+          <span>Service and Excellence</span>
         </div>
       </div>
     </footer>
+  );
+}
+
+type FooterLink = {
+  to:
+    | "/library"
+    | "/sites"
+    | "/training"
+    | "/events"
+    | "/categories"
+    | "/about"
+    | "/faq"
+    | "/contact";
+  label: string;
+  icon: React.ElementType;
+};
+
+function FooterLinks({ title, links }: { title: string; links: FooterLink[] }) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">{title}</p>
+      <ul className="mt-5 space-y-3">
+        {links.map((item) => (
+          <li key={item.label}>
+            <Link
+              to={item.to}
+              className="group inline-flex items-center gap-2.5 text-sm text-white/60 transition-colors hover:text-white"
+            >
+              <item.icon className="h-3.5 w-3.5 text-white/30 transition-colors group-hover:text-accent" />
+              {item.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { api, authorizedFetch, toApiUrl, type ContentFile, type ResourceSummary } from "@/lib/api";
 import { PublicLayout } from "@/components/public-layout";
@@ -9,7 +9,6 @@ import {
   Download, FileText, ChevronRight, Eye, Calendar,
   User, Building2, Globe, Tag, BookOpen, ExternalLink,
   Hash, Copyright, Languages, Link as LinkIcon,
-  Volume2, Pause, Play, Square,
 } from "lucide-react";
 import { ResourceThumbnail } from "@/components/resource-thumbnail";
 import { CitationExport } from "@/components/citation-export";
@@ -48,51 +47,40 @@ function RelatedResources({ resources }: { resources: ResourceSummary[] }) {
   );
 }
 
+const resourceQuery = (slug: string) =>
+  queryOptions({
+    queryKey: ["resource", slug],
+    queryFn: () => api.public.resource(slug),
+  });
+
 export const Route = createFileRoute("/resource/$slug")({
-  head: () => ({
+  loader: async ({ context, params }) => {
+    try {
+      return await context.queryClient.ensureQueryData(resourceQuery(params.slug));
+    } catch {
+      throw notFound();
+    }
+  },
+  head: ({ loaderData }) => ({
     meta: [
-      { title: "Resource — UNZA Sanitation Hub" },
-      { name: "description", content: "Resource detail" },
+      { title: `${loaderData?.title ?? "Resource"} — UNZA Sanitation Hub` },
+      { name: "description", content: loaderData?.summary?.slice(0, 160) ?? "Resource detail" },
     ],
   }),
+  notFoundComponent: () => <ResourceNotFound />,
   component: ResourcePage,
 });
 
 function ResourcePage() {
   const { slug } = Route.useParams();
   const { user } = useAuth();
-  const { data: item, isLoading, isError } = useQuery({
-    queryKey: ["resource", slug],
-    queryFn: () => api.public.resource(slug),
-    retry: false,
-  });
+  const { data: item } = useSuspenseQuery(resourceQuery(slug));
 
   useEffect(() => {
     if (item?.id) {
       api.public.recordView(item.id).catch(() => {});
     }
   }, [item?.id]);
-
-  if (isLoading) {
-    return (
-      <PublicLayout>
-        <div className="container-page py-12">
-          <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-            <div className="space-y-4">
-              <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-              <div className="h-64 animate-pulse rounded-xl bg-muted" />
-              <div className="h-8 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-full animate-pulse rounded bg-muted" />
-              <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
-            </div>
-            <div className="h-96 animate-pulse rounded-xl bg-muted" />
-          </div>
-        </div>
-      </PublicLayout>
-    );
-  }
-
-  if (isError || !item) return <ResourceNotFound />;
 
   const files = item.files ?? [];
   const preview = files[0];
@@ -174,7 +162,6 @@ function ResourcePage() {
                 slug: item.slug,
                 content_type: item.content_type,
               }} />
-              <VoiceReader text={[item.title, item.summary, item.body].filter(Boolean).join(". ")} />
             </div>
 
             {/* Thumbnail / type visual */}
@@ -486,7 +473,8 @@ function PdfPreview({ url }: { url: string }) {
         const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
         pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
-        loadingTask = pdfjsLib.getDocument({ url });
+        const standardFontDataUrl = new URL("/pdfjs/standard_fonts/", window.location.origin).href;
+        loadingTask = pdfjsLib.getDocument({ url, standardFontDataUrl });
         const pdfDoc = await loadingTask.promise;
         if (cancelled || !container) return;
         setPageCount(pdfDoc.numPages);
@@ -542,84 +530,6 @@ function PdfPreview({ url }: { url: string }) {
         onContextMenu={(e) => e.preventDefault()}
         className="max-h-[75vh] overflow-y-auto rounded-xl border border-border bg-secondary/20 p-3"
       />
-    </div>
-  );
-}
-
-function VoiceReader({ text }: { text: string }) {
-  const [speaking, setSpeaking] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-
-  useEffect(() => {
-    return () => { window.speechSynthesis.cancel(); };
-  }, []);
-
-  if (!("speechSynthesis" in window)) return null;
-
-  const handlePlay = () => {
-    if (paused) {
-      window.speechSynthesis.resume();
-      setPaused(false);
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.onend = () => { setSpeaking(false); setPaused(false); };
-    utterance.onerror = () => { setSpeaking(false); setPaused(false); };
-    utteranceRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
-    setSpeaking(true);
-  };
-
-  const handlePause = () => {
-    window.speechSynthesis.pause();
-    setPaused(true);
-  };
-
-  const handleStop = () => {
-    window.speechSynthesis.cancel();
-    setSpeaking(false);
-    setPaused(false);
-  };
-
-  return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2">
-      <Volume2 className="h-4 w-4 text-muted-foreground shrink-0" />
-      {!speaking ? (
-        <button
-          onClick={handlePlay}
-          className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-        >
-          Read aloud
-        </button>
-      ) : (
-        <>
-          {paused ? (
-            <button
-              onClick={handlePlay}
-              className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors"
-            >
-              <Play className="h-3.5 w-3.5" /> Resume
-            </button>
-          ) : (
-            <button
-              onClick={handlePause}
-              className="inline-flex items-center gap-1 text-sm font-medium text-foreground hover:text-primary transition-colors"
-            >
-              <Pause className="h-3.5 w-3.5" /> Pause
-            </button>
-          )}
-          <span className="text-muted-foreground/50 select-none">·</span>
-          <button
-            onClick={handleStop}
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-destructive transition-colors"
-          >
-            <Square className="h-3 w-3" /> Stop
-          </button>
-        </>
-      )}
     </div>
   );
 }

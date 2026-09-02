@@ -1,53 +1,79 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { PublicLayout } from "@/components/public-layout";
-import { FolderOpen } from "lucide-react";
+import { PageHero, PublicLayout } from "@/components/public-layout";
+import { ArrowRight, FolderOpen } from "lucide-react";
+
+const categoriesQuery = queryOptions({
+  queryKey: ["categories", "with-counts"],
+  queryFn: async () => api.public.categories(),
+});
 
 export const Route = createFileRoute("/categories")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(categoriesQuery),
   head: () => ({
     meta: [
-      { title: "Browse Categories — UBIRR" },
-      { name: "description", content: "Browse University of Zambia resources by subject category." },
+      { title: "Browse Categories — UNZA Sanitation Hub" },
+      {
+        name: "description",
+        content: "Browse University of Zambia sanitation resources by subject area.",
+      },
     ],
   }),
   component: CategoriesPage,
 });
 
 function CategoriesPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["categories", "with-counts"],
-    queryFn: async () => api.public.categories(),
-  });
+  const { data } = useSuspenseQuery(categoriesQuery);
 
   return (
     <PublicLayout>
-      <section className="container-page py-12">
-        <h1 className="font-display text-4xl font-bold">Browse by Category</h1>
-        <p className="mt-2 text-muted-foreground">Explore public resources grouped by subject area.</p>
-        {isLoading ? (
-          <p className="mt-8 text-sm text-muted-foreground">Loading…</p>
-        ) : !data || data.length === 0 ? (
-          <p className="mt-8 rounded-lg border border-dashed border-border p-12 text-center text-muted-foreground">
-            No categories have been configured yet.
-          </p>
+      <PageHero
+        eyebrow="Browse topics"
+        title="Explore by category"
+        description="Go directly to research and practical guidance organised around the subjects that matter to your work."
+      />
+
+      <section className="container-page py-12 lg:py-16">
+        {data.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-primary/20 bg-secondary/25 p-14 text-center">
+            <FolderOpen className="mx-auto h-10 w-10 text-primary/35" />
+            <h2 className="mt-4 font-display text-lg font-bold">No categories yet</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Categories will appear here as the library is organised.
+            </p>
+          </div>
         ) : (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {data.map((c) => (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {data.map((category, index) => (
               <Link
-                key={c.id}
+                key={category.id}
                 to="/library"
-                search={{ q: "", type: "all", category: c.slug } as any}
-                className="group rounded-lg border border-border bg-card p-5 transition hover:border-primary hover:shadow-sm"
+                search={{ q: "", type: "all", category: category.slug, department: "" }}
+                className="surface-card interactive-card group flex min-h-44 flex-col p-6"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <FolderOpen className="h-7 w-7 text-primary" />
-                  <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-foreground/70">
-                    {c.count} {c.count === 1 ? "item" : "items"}
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
+                    <FolderOpen className="h-5 w-5" />
+                  </span>
+                  <span className="font-display text-2xl font-bold text-primary/10">
+                    {String(index + 1).padStart(2, "0")}
                   </span>
                 </div>
-                <h2 className="mt-3 font-display text-lg font-semibold group-hover:text-primary">{c.name}</h2>
-                {c.description && <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>}
+                <h2 className="mt-5 text-lg font-bold transition-colors group-hover:text-primary">
+                  {category.name}
+                </h2>
+                {category.description && (
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                    {category.description}
+                  </p>
+                )}
+                <div className="mt-auto flex items-center justify-between pt-5 text-xs font-bold text-primary">
+                  <span>
+                    {category.count} {category.count === 1 ? "resource" : "resources"}
+                  </span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
               </Link>
             ))}
           </div>

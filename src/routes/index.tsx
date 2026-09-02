@@ -1,12 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, queryOptions } from "@tanstack/react-query";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, toApiUrl, type HeroBanner } from "@/lib/api";
 import { PublicLayout } from "@/components/public-layout";
 import {
-  ArrowRight, Search, BookOpen, FileText, GraduationCap,
-  Calendar, MapPin, FlaskConical, BarChart3, Users,
-  ChevronRight, Library, ShieldCheck, ChevronLeft,
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  BookOpenCheck,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  FlaskConical,
+  GraduationCap,
+  Library,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Users,
 } from "lucide-react";
 import { formatDate, accessLabel } from "@/lib/format";
 import { ResourceThumbnail } from "@/components/resource-thumbnail";
@@ -23,33 +35,51 @@ const bannersQuery = queryOptions({
 });
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(featuredQuery),
+      context.queryClient.ensureQueryData(bannersQuery),
+    ]),
   head: () => ({
     meta: [
-      { title: "UNZA Sanitation Hub — Decentralized Sanitation Systems" },
+      { title: "UNZA Sanitation Hub — Knowledge for a Healthier Zambia" },
       {
         name: "description",
         content:
-          "Centre of excellence for monitoring, evaluation, and research in decentralized sanitation systems at the University of Zambia.",
+          "The University of Zambia knowledge platform for sanitation research, policy, training and monitoring.",
       },
       { property: "og:title", content: "UNZA Sanitation Hub & Laboratory Repository" },
       {
         property: "og:description",
         content:
-          "National knowledge platform for sanitation policy, research, training, and monitoring in Zambia.",
+          "A national knowledge platform connecting sanitation science, policy and communities across Zambia.",
       },
     ],
   }),
-  loader: async () => {},
   component: Home,
 });
 
-function StatPill({ value, label, icon: Icon }: { value: number; label: string; icon: React.ElementType }) {
+function StatPill({
+  value,
+  label,
+  icon: Icon,
+}: {
+  value: number;
+  label: string;
+  icon: React.ElementType;
+}) {
   return (
-    <div className="flex items-center gap-3 px-5 py-4 text-white">
-      <Icon className="h-4 w-4 shrink-0 text-white/40" />
-      <div>
-        <div className="font-display text-2xl font-bold leading-none tabular-nums">{value.toLocaleString()}</div>
-        <div className="mt-0.5 text-[10px] uppercase tracking-widest text-white/50">{label}</div>
+    <div className="flex min-w-0 items-center gap-3 border-white/10 px-4 py-5 sm:px-5 lg:border-r last:lg:border-r-0">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/8 text-accent">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <div className="font-display text-xl font-bold leading-none text-white tabular-nums sm:text-2xl">
+          {value.toLocaleString()}
+        </div>
+        <div className="mt-1 truncate text-[9px] font-bold uppercase tracking-[0.13em] text-white/45 sm:text-[10px]">
+          {label}
+        </div>
       </div>
     </div>
   );
@@ -67,382 +97,413 @@ function BannerSlider({ banners }: { banners: HeroBanner[] }) {
     if (timerRef.current) clearInterval(timerRef.current);
     if (count < 2) return;
     timerRef.current = setInterval(() => {
-      setCurrent(c => (c + 1) % count);
-      setAnimKey(k => k + 1);
+      setCurrent((position) => (position + 1) % count);
+      setAnimKey((key) => key + 1);
     }, SLIDE_MS);
   }, [count]);
 
   useEffect(() => {
     startTimer();
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [startTimer]);
 
-  const next = useCallback(() => {
-    setCurrent(c => (c + 1) % count);
-    setAnimKey(k => k + 1);
-    startTimer();
-  }, [count, startTimer]);
+  const showSlide = useCallback(
+    (index: number) => {
+      setCurrent(index);
+      setAnimKey((key) => key + 1);
+      startTimer();
+    },
+    [startTimer],
+  );
 
-  const prev = useCallback(() => {
-    setCurrent(c => (c - 1 + count) % count);
-    setAnimKey(k => k + 1);
-    startTimer();
-  }, [count, startTimer]);
-
-  const goTo = useCallback((idx: number) => {
-    setCurrent(idx);
-    setAnimKey(k => k + 1);
-    startTimer();
-  }, [startTimer]);
+  const next = () => showSlide((current + 1) % count);
+  const previous = () => showSlide((current - 1 + count) % count);
 
   return (
-    <>
+    <div
+      className="absolute inset-0 overflow-hidden"
+      aria-roledescription="carousel"
+      aria-label="Featured work"
+    >
       <style>{`
-        @keyframes heroKenBurns { from { transform: scale(1); } to { transform: scale(1.07); } }
+        @keyframes heroKenBurns { from { transform: scale(1); } to { transform: scale(1.06); } }
         @keyframes heroProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
       `}</style>
-      <div className="absolute inset-0 overflow-hidden">
-        {banners.map((b, idx) => (
-          <div
-            key={b.id}
-            className="absolute inset-0 transition-opacity duration-1000"
-            style={{ opacity: idx === current ? 1 : 0 }}
-          >
-            {b.image_url && (
-              <img
-                src={toApiUrl(b.image_url)}
-                alt={b.title}
-                className="h-full w-full object-cover"
-                style={idx === current
+
+      {banners.map((banner, index) => (
+        <div
+          key={banner.id}
+          aria-hidden={index !== current}
+          className="absolute inset-0 transition-opacity duration-1000"
+          style={{ opacity: index === current ? 1 : 0 }}
+        >
+          {banner.image_url && (
+            <img
+              src={toApiUrl(banner.image_url)}
+              alt=""
+              className="h-full w-full object-cover"
+              style={
+                index === current
                   ? { animation: `heroKenBurns ${SLIDE_MS}ms ease-out both` }
-                  : undefined}
-              />
-            )}
-          </div>
-        ))}
+                  : undefined
+              }
+            />
+          )}
+        </div>
+      ))}
 
-        {/* Dual-layer gradient: left text area + full bottom vignette */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/45" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/15" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,22,14,.94)_0%,rgba(5,28,18,.84)_47%,rgba(4,18,12,.50)_100%)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#061d13]/70 via-transparent to-black/20" />
 
-        {/* Slide subtitle */}
-        {banners[current]?.subtitle && (
-          <div className="absolute bottom-14 left-0 right-0 z-10 pointer-events-none">
-            <div className="container-page">
-              <p className="text-sm italic text-white/60">{banners[current].subtitle}</p>
+      {count > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={previous}
+            aria-label="Previous featured image"
+            className="absolute left-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/25 text-white backdrop-blur-sm transition-colors hover:bg-black/50 sm:flex"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            aria-label="Next featured image"
+            className="absolute right-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/25 text-white backdrop-blur-sm transition-colors hover:bg-black/50 sm:flex"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <div className="absolute inset-x-0 bottom-5 z-20">
+            <div className="container-page flex max-w-xs gap-1.5 lg:max-w-7xl">
+              {banners.map((banner, index) => (
+                <button
+                  key={banner.id}
+                  type="button"
+                  onClick={() => showSlide(index)}
+                  aria-label={`Show featured image ${index + 1}`}
+                  aria-current={index === current ? "true" : undefined}
+                  className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/25 lg:max-w-16"
+                >
+                  {index < current && <span className="absolute inset-0 bg-white/70" />}
+                  {index === current && (
+                    <span
+                      key={animKey}
+                      className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-accent"
+                      style={{ animation: `heroProgress ${SLIDE_MS}ms linear forwards` }}
+                    />
+                  )}
+                </button>
+              ))}
             </div>
           </div>
-        )}
-
-        {/* Navigation arrows */}
-        {count > 1 && (
-          <>
-            <button onClick={prev} aria-label="Previous slide"
-              className="absolute left-5 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-sm hover:bg-black/50 hover:border-white/40 transition-all">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button onClick={next} aria-label="Next slide"
-              className="absolute right-5 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-sm hover:bg-black/50 hover:border-white/40 transition-all">
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          </>
-        )}
-
-        {/* Progress strip indicators */}
-        {count > 1 && (
-          <div className="absolute bottom-5 left-0 right-0 z-10 flex gap-1.5 px-6">
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => goTo(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-white/25"
-              >
-                {idx < current && (
-                  <span className="absolute inset-0 rounded-full bg-white/70" />
-                )}
-                {idx === current && (
-                  <span
-                    key={animKey}
-                    className="absolute inset-y-0 left-0 w-full rounded-full bg-white origin-left"
-                    style={{ animation: `heroProgress ${SLIDE_MS}ms linear forwards` }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </>
+        </>
+      )}
+    </div>
   );
 }
 
 function Home() {
-  const { data } = useQuery(featuredQuery);
-  const { data: banners = [] } = useQuery(bannersQuery);
+  const { data } = useSuspenseQuery(featuredQuery);
+  const { data: banners } = useSuspenseQuery(bannersQuery);
   const stats = data?.stats;
-  const hasBanners = banners.length > 0;
+
+  const focusAreas = [
+    {
+      icon: BookOpenCheck,
+      title: "Research & evidence",
+      description: "Reports, policy briefs and datasets",
+      to: "/library",
+      search: { q: "", type: "research", category: "", department: "" },
+    },
+    {
+      icon: GraduationCap,
+      title: "Training & capacity",
+      description: "Programmes and learning materials",
+      to: "/training",
+    },
+    {
+      icon: MapPin,
+      title: "Demonstration sites",
+      description: "Technologies operating across Zambia",
+      to: "/sites",
+    },
+  ];
 
   return (
     <PublicLayout>
-
-      {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden text-white" style={{ minHeight: "640px" }}>
-
-        {/* Background */}
-        {hasBanners ? (
+      <section className="relative isolate overflow-hidden bg-[#071f15] text-white">
+        {banners.length > 0 ? (
           <BannerSlider banners={banners} />
         ) : (
-          <div
-            className="absolute inset-0"
-            style={{ background: "linear-gradient(145deg, #0d3320 0%, #092a1a 45%, #061e14 80%, #040e0a 100%)" }}
-          >
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-20 h-[600px] w-[600px] rounded-full bg-accent/6 blur-3xl" />
-              <div className="absolute bottom-0 left-1/4 h-[350px] w-[450px] rounded-full bg-white/3 blur-3xl" />
-              <svg className="absolute inset-0 h-full w-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="hero-grid" width="56" height="56" patternUnits="userSpaceOnUse">
-                    <path d="M 56 0 L 0 0 0 56" fill="none" stroke="white" strokeWidth="1" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#hero-grid)" />
-              </svg>
-            </div>
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_28%,rgba(217,166,37,.18),transparent_26%),linear-gradient(118deg,#0d3a27_0%,#082a1c_54%,#061c13_100%)]" />
+            <div className="absolute -right-20 top-12 h-[520px] w-[520px] rounded-full border border-white/5" />
+            <div className="absolute right-20 top-32 h-[360px] w-[360px] rounded-full border border-white/5" />
+            <svg
+              className="absolute inset-0 h-full w-full opacity-[0.035]"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <defs>
+                <pattern id="hero-grid" width="64" height="64" patternUnits="userSpaceOnUse">
+                  <path d="M 64 0 L 0 0 0 64" fill="none" stroke="white" strokeWidth="1" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#hero-grid)" />
+            </svg>
           </div>
         )}
 
-        {/* Content — two columns on desktop */}
-        <div
-          className="container-page relative z-10 grid grid-cols-1 items-center gap-10 py-16 lg:grid-cols-2 lg:gap-16 lg:py-24"
-          style={{ minHeight: "580px" }}
-        >
-          {/* ── Left: text content ── */}
-          <div>
-            {/* Discipline tag */}
-            <div className="mb-5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/50 bg-accent/15 px-3 py-1 backdrop-blur-sm">
-                <FlaskConical className="h-3 w-3 text-accent" />
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-accent">Decentralized Sanitation Systems</span>
-              </span>
+        <div className="container-page relative z-10 grid min-h-[610px] items-center gap-12 py-16 lg:grid-cols-[1.3fr_0.7fr] lg:py-20 xl:gap-24">
+          <div className="max-w-3xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em] text-accent backdrop-blur-sm sm:text-[11px]">
+              <FlaskConical className="h-3.5 w-3.5" />
+              Decentralized sanitation systems
             </div>
 
-            <h1
-              className="font-display text-[2.6rem] font-black leading-[1.05] tracking-tight md:text-5xl lg:text-[3.25rem]"
-              style={{ textShadow: "0 2px 24px rgba(0,0,0,0.5)" }}
-            >
-              Advancing Sanitation<br />
-              <span className="text-accent">Knowledge</span> for a<br />
-              Healthier Zambia
+            <h1 className="text-balance font-display text-[2.75rem] font-bold leading-[1.02] tracking-[-0.04em] sm:text-6xl lg:text-[4.25rem]">
+              Knowledge that moves sanitation <span className="text-accent">forward.</span>
             </h1>
-
-            <p
-              className="mt-5 max-w-lg text-[1rem] leading-relaxed text-white/75 md:text-[1.05rem]"
-              style={{ textShadow: "0 1px 8px rgba(0,0,0,0.35)" }}
-            >
-              The national knowledge platform for sanitation research, policy, training, and
-              monitoring — connecting science, policy, and communities across Zambia.
+            <p className="mt-6 max-w-2xl text-base leading-7 text-white/68 sm:text-lg sm:leading-8">
+              Zambia’s platform for research, policy, training and field-tested solutions—connecting
+              evidence with the people putting it into practice.
             </p>
 
-            {/* Search bar */}
             <form
               action="/search"
-              className="mt-7 flex overflow-hidden rounded-xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-md transition-all focus-within:border-white/35 focus-within:bg-white/15"
+              className="mt-8 flex max-w-2xl items-center rounded-xl bg-white p-1.5 shadow-[0_18px_50px_rgba(0,0,0,.25)] ring-1 ring-white/20 transition-shadow focus-within:ring-2 focus-within:ring-accent"
               suppressHydrationWarning
             >
-              <Search className="ml-4 h-5 w-5 shrink-0 self-center text-white/45" />
+              <Search className="ml-3 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
+              <label htmlFor="home-search" className="sr-only">
+                Search the knowledge repository
+              </label>
               <input
+                id="home-search"
                 name="q"
-                placeholder="Search resources, reports, training materials…"
-                className="flex-1 bg-transparent px-3 py-3.5 text-sm text-white placeholder:text-white/40 focus:outline-none"
+                type="search"
+                placeholder="Search reports, research and training materials"
+                className="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 sm:text-base"
                 suppressHydrationWarning
               />
               <button
                 type="submit"
-                className="m-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-bold text-accent-foreground shadow-sm transition-opacity hover:opacity-90"
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-[#0b4b30] sm:px-6"
                 suppressHydrationWarning
               >
-                Search
+                <span className="hidden sm:inline">Search library</span>
+                <span className="sm:hidden">Search</span>
+                <ArrowRight className="h-4 w-4" />
               </button>
             </form>
 
-            {/* CTA buttons */}
-            <div className="mt-4 flex flex-wrap gap-2.5">
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
               <Link
                 to="/library"
-                search={{} as any}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/12 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/22"
+                search={{ q: "", type: "all", category: "", department: "" }}
+                className="inline-flex items-center gap-2 text-sm font-bold text-white transition-colors hover:text-accent"
               >
-                <Library className="h-4 w-4" /> Browse Library
-              </Link>
-              <Link
-                to="/training"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/12 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/22"
-              >
-                <GraduationCap className="h-4 w-4" /> Training
+                <Library className="h-4 w-4 text-accent" /> Browse all resources
               </Link>
               <Link
                 to="/sites"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/12 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/22"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-white/65 transition-colors hover:text-white"
               >
-                <MapPin className="h-4 w-4" /> Demo Sites
+                View demonstration sites <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
 
-          {/* ── Right: UNZA emblem card ── */}
-          <div className="hidden lg:flex items-center justify-center">
-            <div className="flex flex-col items-center gap-5 rounded-2xl border border-white/15 bg-white/8 px-12 py-10 text-center shadow-2xl backdrop-blur-md">
-              {/* Logo on white circle so it's always visible regardless of filter */}
-              <div className="flex h-36 w-36 items-center justify-center rounded-full bg-white p-4 shadow-xl ring-4 ring-white/20">
-                <img src="/logo.png" alt="University of Zambia" className="h-full w-auto object-contain" />
-              </div>
-              <div className="h-px w-full bg-white/15" />
+          <aside
+            className="hidden rounded-2xl border border-white/15 bg-white/[0.08] p-2 shadow-2xl backdrop-blur-md lg:block"
+            aria-label="Explore focus areas"
+          >
+            <div className="flex items-center gap-3 px-4 py-4">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white p-1.5">
+                <img src="/logo.png" alt="" className="h-full w-auto object-contain" />
+              </span>
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55">University of Zambia</div>
-                <div className="mt-1.5 font-display text-xl font-bold leading-tight text-white">Sanitation Hub</div>
-                <div className="mt-0.5 text-sm text-white/55">& Laboratory Repository</div>
-              </div>
-              <div className="h-px w-full bg-white/15" />
-              <div className="flex flex-col gap-1 text-[11px] text-white/45">
-                <span>Great East Road Campus, Lusaka</span>
-                <span>sanitation@unza.zm</span>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-accent">
+                  Explore the Hub
+                </p>
+                <p className="mt-1 text-sm text-white/55">Start with an area of work</p>
               </div>
             </div>
-          </div>
+            <div className="space-y-1">
+              {focusAreas.map((area) => (
+                <Link
+                  key={area.title}
+                  to={area.to}
+                  search={"search" in area ? area.search : undefined}
+                  className="group flex items-center gap-3 rounded-xl border border-transparent bg-black/10 p-4 transition-colors hover:border-white/10 hover:bg-white/10"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/15 text-accent">
+                    <area.icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-bold">{area.title}</span>
+                    <span className="mt-0.5 block text-xs text-white/45">{area.description}</span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 text-white/30 transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+                </Link>
+              ))}
+            </div>
+          </aside>
         </div>
-
-        {/* Stats strip */}
-        {stats && (
-          <div className="relative z-10 border-t border-white/10 bg-black/50 backdrop-blur-md">
-            <div className="container-page">
-              <div className="flex flex-wrap divide-x divide-white/10">
-                <StatPill value={stats.total_resources} label="Resources" icon={FileText} />
-                <StatPill value={stats.demonstration_sites} label="Demo Sites" icon={MapPin} />
-                <StatPill value={stats.active_sites} label="Active Sites" icon={BarChart3} />
-                <StatPill value={stats.published_events} label="Events" icon={Calendar} />
-                <StatPill value={stats.training_materials} label="Training Materials" icon={GraduationCap} />
-                <StatPill value={stats.research_outputs} label="Research Outputs" icon={BookOpen} />
-              </div>
-            </div>
-          </div>
-        )}
       </section>
 
-      {/* ── What the Hub does ──────────────────────────────────── */}
-      <section className="container-page py-20">
-        <div className="mb-10 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      {stats && (
+        <section className="bg-[#0a3222]" aria-label="Repository statistics">
+          <div className="container-page grid grid-cols-2 lg:grid-cols-6">
+            <StatPill value={stats.total_resources} label="Resources" icon={FileText} />
+            <StatPill value={stats.demonstration_sites} label="Demo sites" icon={MapPin} />
+            <StatPill value={stats.active_sites} label="Active sites" icon={BarChart3} />
+            <StatPill value={stats.published_events} label="Events" icon={Calendar} />
+            <StatPill value={stats.training_materials} label="Training" icon={GraduationCap} />
+            <StatPill value={stats.research_outputs} label="Research" icon={BookOpen} />
+          </div>
+        </section>
+      )}
+
+      <section className="container-page py-20 lg:py-28">
+        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-2">Our work</div>
-            <h2 className="font-display text-3xl font-bold">What the Hub does</h2>
-          </div>
-          <Link to="/about" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-            Learn more <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            {
-              icon: FlaskConical,
-              label: "Research & Innovation",
-              desc: "Evidence-based studies on sanitation technologies, sustainability, and public health outcomes.",
-              to: "/library",
-              search: { type: "research" } as any,
-              color: "bg-green-50 text-green-700",
-            },
-            {
-              icon: GraduationCap,
-              label: "Capacity Building",
-              desc: "Training programmes, workshops, and educational materials for practitioners and students.",
-              to: "/training",
-              search: undefined,
-              color: "bg-blue-50 text-blue-700",
-            },
-            {
-              icon: BarChart3,
-              label: "Monitoring & Evaluation",
-              desc: "Systematic frameworks and dashboards for tracking sanitation interventions nationwide.",
-              to: "/library",
-              search: { type: "report" } as any,
-              color: "bg-amber-50 text-amber-700",
-            },
-            {
-              icon: MapPin,
-              label: "Demonstration Sites",
-              desc: "Physical sites showcasing decentralized sanitation technologies across Zambia.",
-              to: "/sites",
-              search: undefined,
-              color: "bg-purple-50 text-purple-700",
-            },
-          ].map((c) => (
+            <p className="section-kicker">Our work</p>
+            <h2 className="text-balance font-display text-3xl font-bold leading-tight sm:text-4xl">
+              From research to real-world impact
+            </h2>
+            <p className="mt-5 max-w-md text-sm leading-7 text-muted-foreground sm:text-base">
+              The Hub brings knowledge, skills and field evidence together so better sanitation
+              decisions can be made faster.
+            </p>
             <Link
-              key={c.label}
-              to={c.to}
-              search={c.search}
-              className="group flex flex-col rounded-xl border border-border bg-card p-6 transition-all hover:border-primary hover:shadow-md hover:-translate-y-0.5"
+              to="/about"
+              className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary/75"
             >
-              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${c.color}`}>
-                <c.icon className="h-5 w-5" />
-              </div>
-              <div className="mt-4 font-display text-base font-semibold">{c.label}</div>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{c.desc}</p>
-              <div className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary group-hover:gap-2 transition-all">
-                Explore <ArrowRight className="h-3 w-3" />
-              </div>
+              Learn about the Hub <ArrowRight className="h-4 w-4" />
             </Link>
-          ))}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              {
+                icon: FlaskConical,
+                number: "01",
+                title: "Research & innovation",
+                description:
+                  "Locally relevant studies on sanitation technology, sustainability and public health.",
+                to: "/library",
+                search: { q: "", type: "research", category: "", department: "" },
+              },
+              {
+                icon: GraduationCap,
+                number: "02",
+                title: "Capacity building",
+                description:
+                  "Practical training and learning materials for students, practitioners and communities.",
+                to: "/training",
+              },
+              {
+                icon: BarChart3,
+                number: "03",
+                title: "Monitoring & evaluation",
+                description:
+                  "Frameworks and evidence for tracking sanitation programmes and their outcomes.",
+                to: "/library",
+                search: { q: "", type: "report", category: "", department: "" },
+              },
+              {
+                icon: MapPin,
+                number: "04",
+                title: "Demonstration sites",
+                description:
+                  "Living laboratories showcasing decentralized sanitation solutions across Zambia.",
+                to: "/sites",
+              },
+            ].map((item) => (
+              <Link
+                key={item.title}
+                to={item.to}
+                search={"search" in item ? item.search : undefined}
+                className="surface-card interactive-card group relative overflow-hidden p-6"
+              >
+                <div className="flex items-start justify-between">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
+                    <item.icon className="h-5 w-5" />
+                  </span>
+                  <span className="font-display text-2xl font-bold text-primary/10">
+                    {item.number}
+                  </span>
+                </div>
+                <h3 className="mt-5 text-lg font-bold transition-colors group-hover:text-primary">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+                  Explore{" "}
+                  <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── Latest resources ────────────────────────────────────── */}
-      <section className="border-y border-border bg-secondary/30 py-20">
+      <section className="border-y border-border/70 bg-white py-20 lg:py-24">
         <div className="container-page">
-          <div className="mb-10 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-2">Knowledge base</div>
-              <h2 className="font-display text-3xl font-bold">Latest resources</h2>
-            </div>
-            <Link to="/library" search={{} as any} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-              View all resources <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+          <SectionHeading
+            kicker="Knowledge base"
+            title="Latest resources"
+            description="New research, guidance and learning materials from the Hub and its partners."
+            action={{ label: "View all resources", to: "/library" }}
+          />
 
           {(data?.resources?.length ?? 0) === 0 ? (
-            <div className="rounded-xl border-2 border-dashed border-border bg-card p-16 text-center">
-              <Library className="mx-auto h-10 w-10 text-muted-foreground/30" />
-              <p className="mt-4 text-sm text-muted-foreground">No public resources published yet.</p>
-              <p className="mt-1 text-xs text-muted-foreground/60">Content will appear here once the admin publishes resources.</p>
-            </div>
+            <EmptyState
+              icon={Library}
+              title="Resources are being prepared"
+              description="Published resources will appear here as they are added to the library."
+            />
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {(data?.resources ?? []).map((r, i) => (
+              {(data?.resources ?? []).map((resource) => (
                 <Link
-                  key={r.id}
+                  key={resource.id}
                   to="/resource/$slug"
-                  params={{ slug: r.slug }}
-                  className="group flex flex-col rounded-xl border border-border bg-card overflow-hidden transition-all hover:border-primary hover:shadow-xl hover:-translate-y-1"
+                  params={{ slug: resource.slug }}
+                  className="surface-card interactive-card group flex flex-col overflow-hidden"
                 >
-                  <ResourceThumbnail
-                    thumbnailUrl={r.thumbnail_url ? toApiUrl(r.thumbnail_url) : null}
-                    contentType={r.content_type}
-                    title={r.title}
-                    className="h-44 w-full"
-                  />
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {formatDate(r.published_at)}
-                      <span className="ml-auto rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">{accessLabel[r.access_level]}</span>
+                  <div className="relative overflow-hidden">
+                    <ResourceThumbnail
+                      thumbnailUrl={
+                        resource.thumbnail_url ? toApiUrl(resource.thumbnail_url) : null
+                      }
+                      contentType={resource.content_type}
+                      title={resource.title}
+                      className="h-48 w-full transition-transform duration-500 group-hover:scale-[1.025]"
+                    />
+                    <span className="absolute right-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-primary shadow-sm backdrop-blur-sm">
+                      {accessLabel[resource.access_level]}
+                    </span>
+                  </div>
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5 text-primary/60" />{" "}
+                      {formatDate(resource.published_at)}
                     </div>
-                    <h3 className="mt-2.5 font-display text-base font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
-                      {r.title}
+                    <h3 className="mt-3 line-clamp-2 text-lg font-bold leading-snug transition-colors group-hover:text-primary">
+                      {resource.title}
                     </h3>
-                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                      {r.summary ?? "—"}
+                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-muted-foreground">
+                      {resource.summary ??
+                        "Open this resource to view the full details and available files."}
                     </p>
-                    <div className="mt-4 flex items-center gap-1 text-xs font-semibold text-primary group-hover:gap-2 transition-all">
-                      Read more <ChevronRight className="h-3.5 w-3.5" />
-                    </div>
+                    <span className="mt-5 inline-flex items-center gap-2 text-xs font-bold text-primary">
+                      View resource{" "}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </span>
                   </div>
                 </Link>
               ))}
@@ -451,87 +512,160 @@ function Home() {
         </div>
       </section>
 
-      {/* ── Upcoming events ─────────────────────────────────────── */}
-      <section className="container-page py-20">
-        <div className="mb-10 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-primary/70 mb-2">Calendar</div>
-            <h2 className="font-display text-3xl font-bold">Upcoming events</h2>
-          </div>
-          <Link to="/events" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
-            All events <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
+      <section className="container-page py-20 lg:py-24">
+        <SectionHeading
+          kicker="Calendar"
+          title="Upcoming events"
+          description="Join workshops, training sessions and conversations advancing sanitation practice."
+          action={{ label: "See all events", to: "/events" }}
+        />
 
         {(data?.events?.length ?? 0) === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-border bg-card p-16 text-center">
-            <Calendar className="mx-auto h-10 w-10 text-muted-foreground/30" />
-            <p className="mt-4 text-sm text-muted-foreground">No upcoming events scheduled.</p>
-          </div>
+          <EmptyState
+            icon={Calendar}
+            title="No upcoming events"
+            description="New workshops and events will be posted here when registration opens."
+          />
         ) : (
           <div className="grid gap-5 md:grid-cols-3">
-            {(data?.events ?? []).map((e) => (
-              <div key={e.id} className="group relative flex flex-col rounded-xl border border-border bg-card p-6 transition-all hover:border-primary hover:shadow-md">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8 text-primary">
-                  <Calendar className="h-5 w-5" />
+            {(data?.events ?? []).map((event) => (
+              <div key={event.id} className="surface-card flex flex-col p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8 text-primary">
+                    <Calendar className="h-[18px] w-[18px]" />
+                  </span>
+                  <span className="text-xs font-bold text-primary">
+                    {formatDate(event.start_date)}
+                  </span>
                 </div>
-                <h3 className="font-display text-base font-semibold leading-snug">{e.title}</h3>
-                <p className="mt-1.5 text-xs font-medium text-primary">
-                  {formatDate(e.start_date)} {e.venue ? `· ${e.venue}` : ""}
+                <h3 className="mt-5 text-lg font-bold leading-snug">{event.title}</h3>
+                {event.venue && (
+                  <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" /> {event.venue}
+                  </p>
+                )}
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">
+                  {event.description}
                 </p>
-                <p className="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-muted-foreground">{e.description}</p>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      {/* ── Mission CTA ─────────────────────────────────────────── */}
-      <section className="border-t border-border bg-primary py-20 text-primary-foreground">
-        <div className="container-page grid gap-12 lg:grid-cols-2 lg:items-center">
+      <section className="relative overflow-hidden bg-[#0a3222] py-20 text-white lg:py-24">
+        <div
+          className="absolute right-0 top-0 h-96 w-96 translate-x-1/3 -translate-y-1/3 rounded-full border border-white/10"
+          aria-hidden="true"
+        />
+        <div className="container-page relative grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-widest text-accent mb-4">Open knowledge platform</div>
-            <h2 className="font-display text-3xl font-bold leading-tight lg:text-4xl">
-              Open to researchers,<br />practitioners, and<br />the public
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-accent">
+              Open knowledge platform
+            </p>
+            <h2 className="text-balance font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
+              Built for everyone working toward safer sanitation.
             </h2>
-            <p className="mt-5 max-w-md text-base leading-relaxed text-primary-foreground/70">
-              UNZA staff and students sign in with their institutional credentials. Members of the public can create a free account to access downloadable resources and training materials.
+            <p className="mt-5 max-w-2xl text-sm leading-7 text-white/60 sm:text-base">
+              Researchers, practitioners, policy makers, students and community organisations can
+              discover credible resources in one place.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/library"
-                search={{} as any}
-                className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-bold text-primary shadow-sm hover:bg-white/90 transition-colors"
+                search={{ q: "", type: "all", category: "", department: "" }}
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-5 text-sm font-bold text-accent-foreground transition-transform hover:-translate-y-0.5"
               >
-                <Library className="h-4 w-4" />
-                Browse resources
+                <Library className="h-4 w-4" /> Explore the library
               </Link>
               <Link
                 to="/auth"
-                search={{ redirect: "/" } as any}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white hover:bg-white/15 transition-colors"
+                search={{ redirect: "/" }}
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-5 text-sm font-bold transition-colors hover:bg-white/10"
               >
-                <Users className="h-4 w-4" />
-                Create free account
+                <Users className="h-4 w-4" /> Create an account
               </Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {[
-              { icon: FileText, label: "Policy Documents", desc: "National and institutional policies" },
-              { icon: FlaskConical, label: "Research", desc: "Peer-reviewed studies & data" },
-              { icon: GraduationCap, label: "Training", desc: "Capacity building materials" },
-              { icon: ShieldCheck, label: "Standards", desc: "Guidelines & best practices" },
+              { icon: FileText, label: "Policy documents" },
+              { icon: FlaskConical, label: "Research outputs" },
+              { icon: GraduationCap, label: "Training materials" },
+              { icon: ShieldCheck, label: "Standards & guidance" },
             ].map((item) => (
-              <div key={item.label} className="rounded-xl border border-white/12 bg-white/6 p-4">
-                <item.icon className="h-6 w-6 text-accent mb-3" />
-                <div className="text-sm font-semibold">{item.label}</div>
-                <div className="mt-0.5 text-xs text-primary-foreground/55">{item.desc}</div>
+              <div
+                key={item.label}
+                className="rounded-xl border border-white/10 bg-white/[0.06] p-4 sm:p-5"
+              >
+                <item.icon className="h-5 w-5 text-accent" />
+                <p className="mt-3 text-sm font-bold text-white/85">{item.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
     </PublicLayout>
+  );
+}
+
+function SectionHeading({
+  kicker,
+  title,
+  description,
+  action,
+}: {
+  kicker: string;
+  title: string;
+  description: string;
+  action: { label: string; to: "/library" | "/events" };
+}) {
+  return (
+    <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p className="section-kicker">{kicker}</p>
+        <h2 className="font-display text-3xl font-bold sm:text-4xl">{title}</h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          {description}
+        </p>
+      </div>
+      {action.to === "/library" ? (
+        <Link
+          to="/library"
+          search={{ q: "", type: "all", category: "", department: "" }}
+          className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary/75"
+        >
+          {action.label} <ArrowRight className="h-4 w-4" />
+        </Link>
+      ) : (
+        <Link
+          to="/events"
+          className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary/75"
+        >
+          {action.label} <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-primary/20 bg-secondary/30 px-6 py-14 text-center">
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-card text-primary shadow-sm">
+        <Icon className="h-5 w-5" />
+      </span>
+      <h3 className="mt-4 text-base font-bold">{title}</h3>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
+    </div>
   );
 }

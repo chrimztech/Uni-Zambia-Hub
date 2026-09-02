@@ -1,45 +1,94 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { PublicLayout } from "@/components/public-layout";
+import { PageHero, PublicLayout } from "@/components/public-layout";
 import { formatDate } from "@/lib/format";
-import { Calendar, MapPin } from "lucide-react";
+import { ArrowRight, Calendar, MapPin } from "lucide-react";
+
+const eventsQuery = queryOptions({
+  queryKey: ["events", "public"],
+  queryFn: async () => api.public.events(),
+});
 
 export const Route = createFileRoute("/events/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(eventsQuery),
   head: () => ({
     meta: [
-      { title: "Events — UBIRR" },
-      { name: "description", content: "University of Zambia events, lectures, workshops, and biosafety initiative activities." },
+      { title: "Events — UNZA Sanitation Hub" },
+      {
+        name: "description",
+        content:
+          "Sanitation workshops, lectures, training and community events from the University of Zambia.",
+      },
     ],
   }),
   component: EventsPage,
 });
 
 function EventsPage() {
-  const { data } = useQuery({
-    queryKey: ["events", "public"],
-    queryFn: async () => api.public.events(),
-  });
+  const { data } = useSuspenseQuery(eventsQuery);
+
   return (
     <PublicLayout>
-      <section className="container-page py-12">
-        <h1 className="font-display text-4xl font-bold">University Events</h1>
-        <p className="mt-2 text-muted-foreground">Published University and project events.</p>
-        <div className="mt-8 space-y-4">
-          {(!data || data.length === 0) ? (
-            <p className="rounded-lg border border-dashed border-border p-12 text-center text-muted-foreground">No events have been published yet.</p>
-          ) : data.map((e) => (
-            <Link key={e.id} to="/events/$slug" params={{ slug: e.slug }} className="block rounded-lg border border-border bg-card p-6 transition hover:border-primary">
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5 font-medium text-primary"><Calendar className="h-4 w-4" /> {formatDate(e.start_date)}{e.end_date && e.end_date !== e.start_date ? ` – ${formatDate(e.end_date)}` : ""}</span>
-                {e.venue && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {e.venue}</span>}
-              </div>
-              <h2 className="mt-3 font-display text-2xl font-semibold">{e.title}</h2>
-              {e.description && <p className="mt-2 line-clamp-3 text-foreground/85">{e.description}</p>}
-              {e.organizer && <p className="mt-2 text-xs text-muted-foreground">Organised by {e.organizer}</p>}
-            </Link>
-          ))}
-        </div>
+      <PageHero
+        eyebrow="Connect & learn"
+        title="Events and workshops"
+        description="Join practical training, research conversations and community events advancing sanitation across Zambia."
+      />
+
+      <section className="container-page py-12 lg:py-16">
+        {data.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-primary/20 bg-secondary/25 p-14 text-center">
+            <Calendar className="mx-auto h-10 w-10 text-primary/35" />
+            <h2 className="mt-4 font-display text-lg font-bold">No events published</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Upcoming events will appear here as soon as dates are confirmed.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-5 lg:grid-cols-2">
+            {data.map((event) => (
+              <Link
+                key={event.id}
+                to="/events/$slug"
+                params={{ slug: event.slug }}
+                className="surface-card interactive-card group flex flex-col p-6 sm:p-7"
+              >
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1.5 text-primary">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {formatDate(event.start_date)}
+                    {event.end_date && event.end_date !== event.start_date
+                      ? ` – ${formatDate(event.end_date)}`
+                      : ""}
+                  </span>
+                  {event.venue && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" /> {event.venue}
+                    </span>
+                  )}
+                </div>
+                <h2 className="mt-5 text-2xl font-bold leading-snug transition-colors group-hover:text-primary">
+                  {event.title}
+                </h2>
+                {event.description && (
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-muted-foreground">
+                    {event.description}
+                  </p>
+                )}
+                <div className="mt-auto flex items-end justify-between gap-4 pt-6">
+                  <span className="text-xs text-muted-foreground">
+                    {event.organizer ? `Organised by ${event.organizer}` : "UNZA Sanitation Hub"}
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold text-primary">
+                    Event details{" "}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </PublicLayout>
   );
