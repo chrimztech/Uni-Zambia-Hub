@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ArrowUpRight,
+  Bell,
   BookMarked,
   Calendar,
+  ChevronDown,
   ChevronRight,
   FolderOpen,
   GraduationCap,
@@ -20,6 +22,24 @@ import {
   UserCircle,
   X,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 const primaryNav = [
   { to: "/library", label: "Library" },
@@ -119,15 +139,6 @@ export function SiteHeader() {
             <Search className="h-[18px] w-[18px]" />
           </Link>
 
-          {user && (
-            <Link
-              to="/bookmarks"
-              className="hidden items-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground/65 transition-colors hover:bg-secondary hover:text-foreground 2xl:inline-flex"
-            >
-              <BookMarked className="h-4 w-4" /> Saved
-            </Link>
-          )}
-
           {canManageContent && (
             <Link
               to="/admin"
@@ -159,13 +170,50 @@ export function SiteHeader() {
           </button>
 
           {user && (
-            <button
-              type="button"
-              onClick={() => signOut()}
-              className="hidden h-10 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold text-foreground/65 transition-colors hover:bg-secondary hover:text-foreground xl:inline-flex"
-            >
-              <LogOut className="h-4 w-4" /> Sign out
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="hidden h-10 items-center gap-2 rounded-lg border border-border pl-1.5 pr-2.5 text-sm font-semibold text-foreground/80 outline-none transition-colors hover:bg-secondary data-[state=open]:bg-secondary xl:inline-flex">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+                  {user.full_name ? getInitials(user.full_name) : <UserCircle className="h-4 w-4" />}
+                </span>
+                <span className="max-w-[9rem] truncate">{user.full_name || user.email}</span>
+                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="truncate font-normal text-xs text-muted-foreground">
+                  {user.email}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="cursor-pointer">
+                    <UserCircle className="h-4 w-4" /> My profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/bookmarks" className="cursor-pointer">
+                    <BookMarked className="h-4 w-4" /> Saved resources
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/notifications" className="cursor-pointer">
+                    <Bell className="h-4 w-4" /> Notifications
+                  </Link>
+                </DropdownMenuItem>
+                {canManageContent && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4" /> Administration
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut()}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
@@ -212,6 +260,13 @@ export function SiteHeader() {
                   className="inline-flex items-center gap-2 rounded-xl bg-secondary/70 px-3 py-3 text-sm font-semibold"
                 >
                   <BookMarked className="h-4 w-4 text-primary" /> Saved
+                </Link>
+                <Link
+                  to="/notifications"
+                  onClick={closeMenu}
+                  className="col-span-2 inline-flex items-center gap-2 rounded-xl bg-secondary/70 px-3 py-3 text-sm font-semibold"
+                >
+                  <Bell className="h-4 w-4 text-primary" /> Notifications
                 </Link>
                 {canManageContent && (
                   <Link

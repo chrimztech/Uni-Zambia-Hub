@@ -186,7 +186,7 @@ function ContentAdmin() {
           </button>
         </div>
       )}
-      <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card">
+      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-secondary/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr><th className="px-4 py-3">Title</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Access</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Published</th><th></th></tr>

@@ -369,6 +369,19 @@ export type Backup = {
   created_at: string;
 };
 
+export type BackupLocation = {
+  path: string;
+  is_default: boolean;
+  writable: boolean;
+};
+
+export type RestoreResult = {
+  filename: string;
+  database_restored: boolean;
+  files_restored: boolean;
+  message: string;
+};
+
 export type TrainingSessionAdmin = {
   id: string;
   title: string;
@@ -715,6 +728,11 @@ export const api = {
       request<void>(`/api/admin/backup/${encodeURIComponent(filename)}`, { method: "DELETE" }),
     backupDownloadUrl: (filename: string) =>
       `/api/admin/backup/${encodeURIComponent(filename)}/download`,
+    backupLocation: () => request<BackupLocation>("/api/admin/backup/location"),
+    updateBackupLocation: (path: string) =>
+      request<BackupLocation>("/api/admin/backup/location", { method: "PUT", body: { path } }),
+    restoreBackup: (filename: string) =>
+      request<RestoreResult>(`/api/admin/backup/${encodeURIComponent(filename)}/restore`, { method: "POST" }),
     banners: () => request<HeroBanner[]>("/api/admin/banners"),
     createBanner: (payload: Record<string, unknown>) =>
       request<HeroBanner>("/api/admin/banners", { method: "POST", body: payload }),

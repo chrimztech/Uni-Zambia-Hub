@@ -114,7 +114,7 @@ function Dashboard() {
               View all <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-secondary/40">
                 <tr>

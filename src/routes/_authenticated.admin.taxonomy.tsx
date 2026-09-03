@@ -221,7 +221,7 @@ function TaxonomyAdmin() {
         </div>
       )}
 
-      <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card">
+      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-secondary/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
@@ -252,10 +252,10 @@ function TaxonomyAdmin() {
                   {meta.hasDescription && <td className="px-4 py-3 text-sm text-muted-foreground line-clamp-1">{(row as any).description ?? "—"}</td>}
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <button onClick={() => setEditingId(row.id)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      <button onClick={() => setEditingId(row.id)} className="-m-2 inline-flex items-center gap-1 p-2 text-xs text-primary hover:underline">
                         <Pencil className="h-3 w-3" /> Rename
                       </button>
-                      <button onClick={() => remove(row.id, row.name)} className="inline-flex items-center gap-1 text-xs text-destructive hover:underline">
+                      <button onClick={() => remove(row.id, row.name)} className="-m-2 inline-flex items-center gap-1 p-2 text-xs text-destructive hover:underline">
                         <Trash2 className="h-3 w-3" /> Delete
                       </button>
                     </div>

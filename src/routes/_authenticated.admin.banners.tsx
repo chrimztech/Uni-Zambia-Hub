@@ -181,7 +181,7 @@ function BannersAdmin() {
       )}
 
       {/* Banner list */}
-      <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
+      <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-card">
         {data.length === 0 ? (
           <div className="px-4 py-16 text-center text-muted-foreground">
             <Images className="mx-auto h-10 w-10 text-muted-foreground/20 mb-3" />
