@@ -259,10 +259,14 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
 
   const deleteItem = async () => {
     if (!editing.id) return;
-    if (!window.confirm("Permanently delete this draft? This cannot be undone.")) return;
+    const isDraft = editing.status === "draft";
+    const warning = isDraft
+      ? "Permanently delete this draft? This cannot be undone."
+      : "Permanently delete this PUBLISHED resource? This removes it from every user's bookmarks and reading lists and cannot be undone. Consider archiving instead unless you're sure.";
+    if (!window.confirm(warning)) return;
     try {
       await api.admin.deleteContent(editing.id as string);
-      toast.success("Draft deleted");
+      toast.success("Resource deleted");
       onDeleted();
     } catch (e: any) {
       toast.error(e.message || "Delete failed");
@@ -366,9 +370,9 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
                 <Archive className="mr-1 inline h-3.5 w-3.5" /> Archive
               </button>
             )}
-            {editing.id && editing.status === "draft" && isAdmin && (
+            {editing.id && isAdmin && (
               <button onClick={deleteItem} className="w-full rounded-md border border-destructive/40 px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                <Trash2 className="mr-1 inline h-3.5 w-3.5" /> Delete draft
+                <Trash2 className="mr-1 inline h-3.5 w-3.5" /> {editing.status === "draft" ? "Delete draft" : "Delete resource"}
               </button>
             )}
           </div>

@@ -134,6 +134,7 @@ export type EventItem = {
   access_level: string;
   status: string;
   published_at: string | null;
+  banner_image_url: string | null;
 };
 
 export type DemonstrationSite = {
@@ -435,6 +436,7 @@ export type TrainingSessionAdmin = {
   published_at: string | null;
   created_at: string;
   registration_count: number;
+  image_url: string | null;
 };
 
 export type TrainingSessionListing = {
@@ -455,6 +457,7 @@ export type TrainingSessionListing = {
   status: string;
   published_at: string | null;
   registration_count: number;
+  image_url: string | null;
 };
 
 export type TrainingSessionPublic = TrainingSessionListing & {
@@ -713,6 +716,11 @@ export const api = {
       request<EventAdmin>(`/api/admin/events/${id}`, { method: "PUT", body: payload }),
     publishEvent: (id: string) => request<void>(`/api/admin/events/${id}/publish`, { method: "POST" }),
     deleteEvent: (id: string) => request<void>(`/api/admin/events/${id}`, { method: "DELETE" }),
+    uploadEventImage: (id: string, file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      return request<{ url: string }>(`/api/admin/events/${id}/image`, { method: "POST", rawBody: form });
+    },
     digitization: () => request<DigitizationRecord[]>("/api/admin/digitization"),
     createDigitization: (payload: Record<string, unknown>) =>
       request<DigitizationRecord>("/api/admin/digitization", { method: "POST", body: payload }),
@@ -821,6 +829,11 @@ export const api = {
       request<void>(`/api/admin/training/${id}`, { method: "DELETE" }),
     trainingRegistrations: (id: string) =>
       request<TrainingRegistrationAdmin[]>(`/api/admin/training/${id}/registrations`),
+    uploadTrainingImage: (id: string, file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      return request<{ url: string }>(`/api/admin/training/${id}/image`, { method: "POST", rawBody: form });
+    },
   },
   userTraining: {
     sessions: () => request<TrainingSessionPublic[]>("/api/account/training"),

@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, toApiUrl } from "@/lib/api";
 import { PublicLayout } from "@/components/public-layout";
 import { formatDate } from "@/lib/format";
 import { Calendar, MapPin, User2, Mail, ExternalLink } from "lucide-react";
@@ -38,6 +38,11 @@ function EventDetail() {
     <PublicLayout>
       <article className="container-page max-w-4xl py-12">
         <Link to="/events" className="text-sm text-muted-foreground hover:text-primary">← All events</Link>
+        {ev.banner_image_url && (
+          <div className="mt-4 h-64 w-full overflow-hidden rounded-2xl border border-border bg-secondary/40 sm:h-80">
+            <img src={toApiUrl(ev.banner_image_url)} alt="" className="h-full w-full object-cover" />
+          </div>
+        )}
         <h1 className="mt-4 font-display text-4xl font-bold leading-tight">{ev.title}</h1>
         <div className="mt-4 grid gap-3 rounded-lg border border-border bg-card p-5 text-sm sm:grid-cols-2">
           <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" /> {formatDate(ev.start_date)}{ev.end_date && ev.end_date !== ev.start_date ? ` – ${formatDate(ev.end_date)}` : ""}{ev.start_time ? ` · ${ev.start_time}${ev.end_time ? `–${ev.end_time}` : ""}` : ""}</div>

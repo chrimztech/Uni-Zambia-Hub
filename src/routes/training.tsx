@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, type TrainingSessionListing, type TrainingSessionPublic } from "@/lib/api";
+import { api, toApiUrl, type TrainingSessionListing, type TrainingSessionPublic } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHero, PublicLayout } from "@/components/public-layout";
 import { formatDate, accessLabel, contentTypeLabel } from "@/lib/format";
@@ -52,8 +52,14 @@ function SessionCard({
 
   return (
     <div
-      className={`surface-card flex flex-col p-6 transition ${isCompleted ? "opacity-75" : "hover:border-primary/30 hover:shadow-lg"}`}
+      className={`surface-card flex flex-col overflow-hidden p-0 transition ${isCompleted ? "opacity-75" : "hover:border-primary/30 hover:shadow-lg"}`}
     >
+      {session.image_url && (
+        <div className="h-36 w-full overflow-hidden bg-secondary/40">
+          <img src={toApiUrl(session.image_url)} alt="" className="h-full w-full object-cover" />
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-6">
       <div className="flex items-center gap-2 text-xs">
         {session.mode && (
           <span className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary capitalize">
@@ -147,6 +153,7 @@ function SessionCard({
             {registering ? "Registering…" : isFull ? "Fully booked" : "Register"}
           </button>
         )}
+      </div>
       </div>
     </div>
   );

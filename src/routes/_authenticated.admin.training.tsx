@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Fragment, useState } from "react";
-import { api, type TrainingSessionAdmin, type TrainingRegistrationAdmin } from "@/lib/api";
+import { api, toApiUrl, type TrainingSessionAdmin, type TrainingRegistrationAdmin } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Trash2, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Users, ChevronDown, ChevronUp, ImagePlus, GraduationCap } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/training")({
   head: () => ({ meta: [{ title: "Training — Admin — UBIRR" }, { name: "robots", content: "noindex" }] }),
@@ -21,6 +21,9 @@ function TrainingAdmin() {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<DraftSession | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [pendingImage, setPendingImage] = useState<File | null>(null);
+  const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const { data: sessions } = useQuery({
     queryKey: ["admin", "training"],
@@ -32,6 +35,28 @@ function TrainingAdmin() {
     queryFn: () => api.admin.trainingRegistrations(expandedId!),
     enabled: !!expandedId,
   });
+
+  const openDraft = (d: DraftSession) => {
+    setDraft(d);
+    setPendingImage(null);
+    setPendingImagePreview(null);
+  };
+
+  const closeDraft = () => {
+    setDraft(null);
+    setPendingImage(null);
+    setPendingImagePreview(null);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingImage(file);
+    setPendingImagePreview(URL.createObjectURL(file));
+    e.target.value = "";
+  };
+
+  const currentImageUrl = pendingImagePreview ?? (draft?.image_url ? toApiUrl(draft.image_url) : null);
 
   const save = async () => {
     if (!draft?.title) return toast.error("Title required");
@@ -52,14 +77,24 @@ function TrainingAdmin() {
       contact_email: draft.contact_email ?? null,
       status: draft.status || "draft",
     };
+    setSaving(true);
     try {
-      if (draft.id) await api.admin.updateTrainingSession(draft.id, payload);
-      else await api.admin.createTrainingSession(payload);
+      const saved = draft.id
+        ? await api.admin.updateTrainingSession(draft.id, payload)
+        : await api.admin.createTrainingSession(payload);
+
+      if (pendingImage) {
+        await api.admin.uploadTrainingImage(saved.id, pendingImage);
+      }
+
       toast.success("Saved");
-      setDraft(null);
+      closeDraft();
       qc.invalidateQueries({ queryKey: ["admin", "training"] });
+      qc.invalidateQueries({ queryKey: ["public", "training"] });
     } catch (e: any) {
       toast.error(e.message || "Failed");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -97,7 +132,7 @@ function TrainingAdmin() {
           <p className="mt-1 text-sm text-muted-foreground">Create and manage training programmes for users to register for.</p>
         </div>
         <button
-          onClick={() => setDraft({ title: "", slug: "", description: "", mode: "in-person", venue: "", start_date: new Date().toISOString().slice(0, 10), status: "draft" })}
+          onClick={() => openDraft({ title: "", slug: "", description: "", mode: "in-person", venue: "", start_date: new Date().toISOString().slice(0, 10), status: "draft" })}
           className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
         >
           <Plus className="h-4 w-4" /> New session
@@ -107,6 +142,37 @@ function TrainingAdmin() {
       {draft && (
         <div className="mt-6 rounded-lg border border-border bg-card p-5">
           <h2 className="mb-4 text-base font-semibold">{draft.id ? "Edit Session" : "New Training Session"}</h2>
+
+          {/* Session image */}
+          <div className="mb-5">
+            <span className="block text-sm font-medium text-foreground mb-2">Session image</span>
+            {currentImageUrl ? (
+              <div className="relative w-full rounded-xl overflow-hidden border border-border" style={{ height: "180px" }}>
+                <img src={currentImageUrl} alt="Training session preview" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-3 right-3">
+                  <label className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-900 hover:bg-white shadow transition-colors backdrop-blur-sm">
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    Change image
+                    <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} />
+                  </label>
+                </div>
+                {pendingImagePreview && (
+                  <div className="absolute top-3 left-3">
+                    <span className="rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">New image selected</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-border cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors" style={{ height: "150px" }}>
+                <ImagePlus className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                <span className="text-sm font-medium text-muted-foreground">Click to upload a session image</span>
+                <span className="text-xs text-muted-foreground/50 mt-1">PNG, JPG, WEBP · Recommended 16:9</span>
+                <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} />
+              </label>
+            )}
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="sm:col-span-2 flex flex-col gap-1">
               <span className="text-sm font-medium">Title *</span>
@@ -170,8 +236,10 @@ function TrainingAdmin() {
             </label>
           </div>
           <div className="mt-4 flex gap-2">
-            <button onClick={save} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Save</button>
-            <button onClick={() => setDraft(null)} className="rounded-md border border-border px-4 py-2 text-sm">Cancel</button>
+            <button onClick={save} disabled={saving} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
+              {saving ? "Saving…" : "Save"}
+            </button>
+            <button onClick={closeDraft} className="rounded-md border border-border px-4 py-2 text-sm">Cancel</button>
           </div>
           <style>{`.input{width:100%;border-radius:.375rem;border:1px solid var(--color-border);background:var(--color-background);padding:.5rem .75rem;font-size:.875rem}`}</style>
         </div>
@@ -181,6 +249,7 @@ function TrainingAdmin() {
         <table className="w-full text-sm">
           <thead className="bg-secondary/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
+              <th className="px-4 py-3"></th>
               <th className="px-4 py-3">Title</th>
               <th className="px-4 py-3">Date</th>
               <th className="px-4 py-3">Mode</th>
@@ -193,6 +262,15 @@ function TrainingAdmin() {
             {sessions?.map((s) => (
               <Fragment key={s.id}>
                 <tr>
+                  <td className="px-4 py-3">
+                    <div className="h-10 w-16 shrink-0 overflow-hidden rounded-md border border-border bg-secondary/40">
+                      {s.image_url ? (
+                        <img src={toApiUrl(s.image_url)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center"><GraduationCap className="h-4 w-4 text-muted-foreground/40" /></div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-medium">{s.title}</td>
                   <td className="px-4 py-3 text-muted-foreground">{formatDate(s.start_date)}</td>
                   <td className="px-4 py-3 text-muted-foreground capitalize">{s.mode ?? "—"}</td>
@@ -218,7 +296,7 @@ function TrainingAdmin() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
-                      <button onClick={() => setDraft({ ...s, start_date: s.start_date })} className="text-primary hover:underline text-xs">Edit</button>
+                      <button onClick={() => openDraft({ ...s, start_date: s.start_date })} className="text-primary hover:underline text-xs">Edit</button>
                       {s.status !== "published" && (
                         <button onClick={() => publish(s.id)} className="text-accent hover:underline text-xs">Publish</button>
                       )}
@@ -230,7 +308,7 @@ function TrainingAdmin() {
                 </tr>
                 {expandedId === s.id && (
                   <tr>
-                    <td colSpan={6} className="bg-secondary/30 px-4 py-3">
+                    <td colSpan={7} className="bg-secondary/30 px-4 py-3">
                       {!registrations ? (
                         <p className="text-xs text-muted-foreground">Loading...</p>
                       ) : registrations.length === 0 ? (
@@ -267,7 +345,7 @@ function TrainingAdmin() {
               </Fragment>
             ))}
             {(!sessions || sessions.length === 0) && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">No training sessions yet. Create one to get started.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">No training sessions yet. Create one to get started.</td></tr>
             )}
           </tbody>
         </table>

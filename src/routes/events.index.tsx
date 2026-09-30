@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { api, toApiUrl } from "@/lib/api";
 import { PageHero, PublicLayout } from "@/components/public-layout";
 import { formatDate } from "@/lib/format";
 import { ArrowRight, Calendar, MapPin } from "lucide-react";
@@ -52,8 +52,18 @@ function EventsPage() {
                 key={event.id}
                 to="/events/$slug"
                 params={{ slug: event.slug }}
-                className="surface-card interactive-card group flex flex-col p-6 sm:p-7"
+                className="surface-card interactive-card group flex flex-col overflow-hidden p-0"
               >
+                {event.banner_image_url && (
+                  <div className="h-44 w-full overflow-hidden bg-secondary/40">
+                    <img
+                      src={toApiUrl(event.banner_image_url)}
+                      alt=""
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-1 flex-col p-6 sm:p-7">
                 <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-muted-foreground">
                   <span className="inline-flex items-center gap-2 rounded-full bg-primary/8 px-3 py-1.5 text-primary">
                     <Calendar className="h-3.5 w-3.5" />
@@ -84,6 +94,7 @@ function EventsPage() {
                     Event details{" "}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </span>
+                </div>
                 </div>
               </Link>
             ))}
