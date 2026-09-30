@@ -223,7 +223,7 @@ function BannersAdmin() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground text-center">{b.display_order}</td>
                   <td className="px-4 py-3">
-                    <button onClick={() => toggleActive(b)} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${b.active ? "bg-green-100 text-green-800 hover:bg-green-200" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+                    <button onClick={() => toggleActive(b)} className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors ${b.active ? "bg-success-soft text-success-soft-foreground hover:opacity-80" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
                       {b.active ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
                       {b.active ? "Active" : "Hidden"}
                     </button>

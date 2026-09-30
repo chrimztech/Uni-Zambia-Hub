@@ -27,7 +27,7 @@ function AuthGate() {
             {[0, 1, 2].map((i) => (
               <span
                 key={i}
-                className="h-2 w-2 animate-bounce rounded-full bg-green-700 opacity-80"
+                className="h-2 w-2 animate-bounce rounded-full bg-primary opacity-80"
                 style={{ animationDelay: `${i * 0.16}s` }}
               />
             ))}

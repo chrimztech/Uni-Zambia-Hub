@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 });
 
 const statusColors: Record<string, string> = {
-  active: "bg-green-100 text-green-800",
+  active: "bg-success-soft text-success-soft-foreground",
   suspended: "bg-red-100 text-red-800",
   pending: "bg-yellow-100 text-yellow-800",
 };
@@ -311,7 +311,7 @@ function UsersAdmin() {
                         className={`rounded px-2 py-1 text-xs font-medium ${
                           u.status === "active"
                             ? "bg-red-50 text-red-700 hover:bg-red-100"
-                            : "bg-green-50 text-green-700 hover:bg-green-100"
+                            : "bg-success-soft text-success-soft-foreground hover:opacity-80"
                         }`}
                       >
                         {u.status === "active" ? "Suspend" : "Activate"}

@@ -74,7 +74,7 @@ function FaqPage() {
           ))}
         </div>
 
-        <aside className="h-fit rounded-2xl bg-[#0a3222] p-6 text-white lg:sticky lg:top-32">
+        <aside className="h-fit rounded-2xl bg-brand-deep p-6 text-white lg:sticky lg:top-32">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-accent">
             <HelpCircle className="h-5 w-5" />
           </span>

@@ -198,7 +198,7 @@ function TrainingAdmin() {
                   <td className="px-4 py-3 text-muted-foreground capitalize">{s.mode ?? "—"}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                      s.status === "published" ? "bg-green-100 text-green-800" :
+                      s.status === "published" ? "bg-success-soft text-success-soft-foreground" :
                       s.status === "completed" ? "bg-blue-100 text-blue-800" :
                       "bg-gray-100 text-gray-600"
                     }`}>
@@ -252,7 +252,7 @@ function TrainingAdmin() {
                                   <td className="py-1 pr-4">{r.user_name || "—"}</td>
                                   <td className="py-1 pr-4 text-muted-foreground">{r.user_email}</td>
                                   <td className="py-1 pr-4">
-                                    <span className={`capitalize ${r.status === "registered" ? "text-green-700" : "text-muted-foreground"}`}>{r.status}</span>
+                                    <span className={`capitalize ${r.status === "registered" ? "text-success-soft-foreground" : "text-muted-foreground"}`}>{r.status}</span>
                                   </td>
                                   <td className="py-1 text-muted-foreground">{formatDate(r.registered_at)}</td>
                                 </tr>

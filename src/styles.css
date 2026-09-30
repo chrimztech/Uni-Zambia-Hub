@@ -32,44 +32,63 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-deep-hover: var(--brand-deep-hover);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
   --font-display: "Source Serif 4", Georgia, serif;
   --font-sans: "Inter", system-ui, sans-serif;
 }
 
 :root {
   --radius: 0.75rem;
-  /* UNZA palette: UNZA Digital Library forest green + warm gold accent, ivory background */
+  /* UNZA official brand palette (institution colour guide):
+     green #01862b · light green #93b800 · orange #f3950c ·
+     brown #ef942e · red #d4000d · black #050000.
+     Neutrals below (background/border/input/muted) are not part of that guide and are
+     kept as the site's existing warm-ivory neutrals. */
   --background: oklch(0.985 0.006 96);
-  --foreground: oklch(0.19 0.025 151);
+  --foreground: #050000;
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 148);
+  --card-foreground: #050000;
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 148);
-  --primary: oklch(0.42 0.13 148); /* UNZA green — #166534 */
-  --primary-foreground: oklch(0.99 0.005 95);
-  --secondary: oklch(0.94 0.025 145);
-  --secondary-foreground: oklch(0.25 0.07 148);
+  --popover-foreground: #050000;
+  --primary: #01862b; /* UNZA green */
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in srgb, #01862b 8%, white);
+  --secondary-foreground: #01862b;
   --muted: oklch(0.96 0.01 100);
   --muted-foreground: oklch(0.47 0.022 148);
-  --accent: oklch(0.78 0.13 80); /* warm gold */
-  --accent-foreground: oklch(0.22 0.03 80);
-  --destructive: oklch(0.55 0.22 28);
-  --destructive-foreground: oklch(0.98 0 0);
-  --success: oklch(0.55 0.14 148);
-  --success-foreground: oklch(0.98 0 0);
-  --warning: oklch(0.75 0.15 75);
-  --warning-foreground: oklch(0.22 0.03 80);
+  --accent: #f3950c; /* UNZA orange */
+  --accent-foreground: #050000;
+  --destructive: #d4000d; /* UNZA red */
+  --destructive-foreground: #ffffff;
+  --success: #93b800; /* UNZA light green */
+  --success-foreground: #050000;
+  --warning: #ef942e; /* UNZA brown */
+  --warning-foreground: #050000;
   --border: oklch(0.9 0.012 125);
   --input: oklch(0.91 0.012 125);
-  --ring: oklch(0.48 0.12 150);
-  --sidebar: oklch(0.33 0.11 148);
-  --sidebar-foreground: oklch(0.97 0.01 95);
-  --sidebar-primary: oklch(0.78 0.13 80);
-  --sidebar-primary-foreground: oklch(0.22 0.03 80);
-  --sidebar-accent: oklch(0.4 0.11 148);
-  --sidebar-accent-foreground: oklch(0.97 0.01 95);
-  --sidebar-border: oklch(0.4 0.11 148);
-  --sidebar-ring: oklch(0.78 0.13 80);
+  --ring: #01862b;
+  --sidebar: #01862b;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #f3950c;
+  --sidebar-primary-foreground: #050000;
+  --sidebar-accent: color-mix(in srgb, #01862b 85%, black);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: color-mix(in srgb, #01862b 85%, black);
+  --sidebar-ring: #f3950c;
+  /* Deep-green tone used for full-bleed hero/footer sections — derived from the exact
+     official green so those sections read as "the same green", just darkened, instead of
+     an unrelated ad-hoc dark green. */
+  --brand-deep: color-mix(in srgb, #01862b 32%, black);
+  --brand-deep-hover: color-mix(in srgb, #01862b 55%, black);
+  /* Light-tint / dark-text pair for "positive status" badges (active, published, approved,
+     registered, etc.) — replaces the many hardcoded bg-green-100/text-green-800 Tailwind
+     utilities scattered around the admin/public UI, which were never tied to the brand
+     green at all. Derived from the official light green so badges read as on-brand. */
+  --success-soft: color-mix(in srgb, #93b800 16%, white);
+  --success-soft-foreground: color-mix(in srgb, #93b800 60%, black);
 }
 
 .dark {
@@ -79,17 +98,25 @@
   --card-foreground: oklch(0.96 0.01 95);
   --popover: oklch(0.22 0.03 155);
   --popover-foreground: oklch(0.96 0.01 95);
-  --primary: oklch(0.78 0.13 80);
-  --primary-foreground: oklch(0.22 0.03 80);
+  --primary: #f3950c; /* UNZA orange pops better than green on a dark surface */
+  --primary-foreground: #050000;
   --secondary: oklch(0.28 0.03 155);
   --secondary-foreground: oklch(0.96 0.01 95);
   --muted: oklch(0.26 0.02 155);
   --muted-foreground: oklch(0.72 0.02 100);
-  --accent: oklch(0.4 0.08 155);
-  --accent-foreground: oklch(0.96 0.01 95);
+  --accent: #01862b; /* UNZA green as the secondary accent in dark mode */
+  --accent-foreground: #ffffff;
+  --destructive: #d4000d;
+  --destructive-foreground: #ffffff;
+  --success: #93b800;
+  --success-foreground: #050000;
+  --warning: #ef942e;
+  --warning-foreground: #050000;
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.78 0.13 80);
+  --ring: #f3950c;
+  --success-soft: color-mix(in srgb, #93b800 22%, black);
+  --success-soft-foreground: color-mix(in srgb, #93b800 65%, white);
 }
 
 @layer base {
@@ -116,7 +143,7 @@
     letter-spacing: -0.025em;
   }
   ::selection {
-    background: oklch(0.79 0.135 81 / 45%);
+    background: color-mix(in srgb, var(--color-accent) 45%, transparent);
     color: var(--color-foreground);
   }
   :focus-visible {
@@ -134,7 +161,7 @@
 
 @layer components {
   .container-page {
-    @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8;
+    @apply mx-auto w-full max-w-[96rem] px-5 sm:px-6 lg:px-8;
   }
   .badge-access {
     @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;

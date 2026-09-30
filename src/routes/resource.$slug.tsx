@@ -13,6 +13,7 @@ import {
 import { ResourceThumbnail } from "@/components/resource-thumbnail";
 import { CitationExport } from "@/components/citation-export";
 import { BookmarkButton } from "@/components/bookmark-button";
+import { AddToReadingListButton } from "@/components/add-to-reading-list-button";
 import { toast } from "sonner";
 import type { PDFDocumentLoadingTask } from "pdfjs-dist";
 
@@ -154,6 +155,7 @@ function ResourcePage() {
             {/* Action row */}
             <div className="mt-6 flex flex-wrap items-center gap-2">
               <BookmarkButton contentId={item.id} />
+              <AddToReadingListButton contentId={item.id} />
               <CitationExport item={{
                 title: item.title,
                 authors: item.authors,

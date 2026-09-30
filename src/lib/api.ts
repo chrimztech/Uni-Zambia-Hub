@@ -375,6 +375,40 @@ export type BackupLocation = {
   writable: boolean;
 };
 
+export type ReadingListItem = {
+  id: string;
+  content_id: string;
+  title: string;
+  slug: string;
+  note: string | null;
+  position: number;
+  added_at: string;
+};
+
+export type ReadingList = {
+  id: string;
+  name: string;
+  description: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  items: ReadingListItem[];
+};
+
+export type SiteMonitoringRecord = {
+  id: string;
+  site_id: string;
+  visit_date: string;
+  conducted_by: string | null;
+  performance_rating: "excellent" | "good" | "fair" | "poor" | "needs_attention" | null;
+  findings: string | null;
+  recommendations: string | null;
+  follow_up_required: boolean;
+  follow_up_date: string | null;
+  recorded_by_name: string | null;
+  created_at: string;
+};
+
 export type RestoreResult = {
   filename: string;
   database_restored: boolean;
@@ -636,6 +670,17 @@ export const api = {
     notifications: () => request<NotificationItem[]>("/api/account/notifications"),
     markNotificationsRead: (payload: { all: boolean; ids?: string[] }) =>
       request<void>("/api/account/notifications/read", { method: "PUT", body: payload }),
+    readingLists: () => request<ReadingList[]>("/api/account/reading-lists"),
+    createReadingList: (payload: { name: string; description?: string; is_public?: boolean }) =>
+      request<ReadingList>("/api/account/reading-lists", { method: "POST", body: payload }),
+    updateReadingList: (id: string, payload: { name: string; description?: string; is_public?: boolean }) =>
+      request<ReadingList>(`/api/account/reading-lists/${id}`, { method: "PUT", body: payload }),
+    deleteReadingList: (id: string) =>
+      request<void>(`/api/account/reading-lists/${id}`, { method: "DELETE" }),
+    addReadingListItem: (id: string, payload: { content_id: string; note?: string }) =>
+      request<ReadingList>(`/api/account/reading-lists/${id}/items`, { method: "POST", body: payload }),
+    removeReadingListItem: (itemId: string) =>
+      request<void>(`/api/account/reading-lists/items/${itemId}`, { method: "DELETE" }),
   },
   admin: {
     dashboard: () => request<DashboardSummary>("/api/admin/dashboard"),
@@ -757,6 +802,14 @@ export const api = {
       form.append("file", file);
       return request<{ url: string }>(`/api/admin/sites/${id}/image`, { method: "POST", rawBody: form });
     },
+    siteMonitoringRecords: (siteId: string) =>
+      request<SiteMonitoringRecord[]>(`/api/admin/sites/${siteId}/monitoring`),
+    createSiteMonitoringRecord: (siteId: string, payload: Record<string, unknown>) =>
+      request<SiteMonitoringRecord>(`/api/admin/sites/${siteId}/monitoring`, { method: "POST", body: payload }),
+    updateSiteMonitoringRecord: (recordId: string, payload: Record<string, unknown>) =>
+      request<SiteMonitoringRecord>(`/api/admin/sites/monitoring/${recordId}`, { method: "PUT", body: payload }),
+    deleteSiteMonitoringRecord: (recordId: string) =>
+      request<void>(`/api/admin/sites/monitoring/${recordId}`, { method: "DELETE" }),
     trainingSessions: () => request<TrainingSessionAdmin[]>("/api/admin/training"),
     createTrainingSession: (payload: Record<string, unknown>) =>
       request<TrainingSessionAdmin>("/api/admin/training", { method: "POST", body: payload }),

@@ -31,7 +31,7 @@ const STATUS_CONFIG: Record<Status, { label: string; icon: React.ElementType; co
   metadata_added: { label: "Metadata Added",  icon: ClipboardCheck,color: "text-indigo-600",  bg: "bg-indigo-100" },
   under_review:   { label: "Under Review",    icon: Eye,           color: "text-amber-600",   bg: "bg-amber-100" },
   approved:       { label: "Approved",        icon: ThumbsUp,      color: "text-teal-600",    bg: "bg-teal-100" },
-  published:      { label: "Published",       icon: Globe,         color: "text-green-700",   bg: "bg-green-100" },
+  published:      { label: "Published",       icon: Globe,         color: "text-success-soft-foreground",   bg: "bg-success-soft" },
   rejected:       { label: "Rejected",        icon: AlertCircle,   color: "text-red-600",     bg: "bg-red-100" },
   rescan:         { label: "Rescan Needed",   icon: RefreshCw,     color: "text-orange-600",  bg: "bg-orange-100" },
 };
@@ -61,12 +61,12 @@ function PipelineBar({ status }: { status: string }) {
         return (
           <div key={s} className="flex items-center gap-1">
             <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] ${
-              done ? "bg-green-500 text-white" : active ? "bg-primary text-white" : "bg-gray-200 text-gray-400"
+              done ? "bg-success text-white" : active ? "bg-primary text-white" : "bg-gray-200 text-gray-400"
             }`}>
               {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Icon className="h-3 w-3" />}
             </div>
             {i < PIPELINE.length - 1 && (
-              <div className={`h-0.5 w-4 shrink-0 ${i < idx ? "bg-green-400" : "bg-gray-200"}`} />
+              <div className={`h-0.5 w-4 shrink-0 ${i < idx ? "bg-success" : "bg-gray-200"}`} />
             )}
           </div>
         );
@@ -231,7 +231,7 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
                       <button
                         onClick={promoteToLibrary}
                         disabled={promoting}
-                        className="inline-flex items-center gap-2 rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-800 disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-deep-hover disabled:opacity-60"
                       >
                         <BookUp className="h-4 w-4" />
                         {promoting ? "Creating library entry…" : "Promote to Library"}
@@ -285,8 +285,8 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
               )}
 
               {isPublished && (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-green-800">
+                <div className="rounded-lg border border-success-soft bg-success-soft/40 px-4 py-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-success-soft-foreground">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
                     Digitization complete — resource is in the library
                   </div>
@@ -294,14 +294,14 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a
                         href={`/admin/content?open=${linkedItemId}`}
-                        className="inline-flex items-center gap-1.5 rounded-md bg-white border border-green-300 px-3 py-1.5 text-sm font-medium text-green-800 hover:bg-green-50"
+                        className="inline-flex items-center gap-1.5 rounded-md bg-white border border-success-soft px-3 py-1.5 text-sm font-medium text-success-soft-foreground hover:bg-success-soft/40"
                       >
                         <FileText className="h-3.5 w-3.5" /> Edit in Content Manager
                         <ExternalLink className="h-3 w-3 opacity-60" />
                       </a>
                     </div>
                   )}
-                  <p className="mt-2 text-xs text-green-700">
+                  <p className="mt-2 text-xs text-success-soft-foreground">
                     The content item was created as a <strong>draft</strong>. Go to Content Manager to set the access level,
                     add categories, and publish it so users can find and download it.
                   </p>

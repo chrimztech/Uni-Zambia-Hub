@@ -13,6 +13,7 @@ import {
   Info,
   LayoutDashboard,
   Library,
+  ListChecks,
   LogIn,
   LogOut,
   Mail,
@@ -75,7 +76,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 shadow-[0_1px_12px_rgba(13,51,32,0.05)] backdrop-blur-xl">
-      <div className="hidden bg-[#0b3524] text-white md:block">
+      <div className="hidden bg-brand-deep text-white md:block">
         <div className="container-page flex h-8 items-center justify-between text-[11px] font-medium tracking-wide">
           <span className="text-white/70">School of Engineering · University of Zambia</span>
           <div className="flex items-center gap-5">
@@ -194,6 +195,11 @@ export function SiteHeader() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to="/reading-lists" className="cursor-pointer">
+                    <ListChecks className="h-4 w-4" /> Reading lists
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/notifications" className="cursor-pointer">
                     <Bell className="h-4 w-4" /> Notifications
                   </Link>
@@ -262,6 +268,13 @@ export function SiteHeader() {
                   <BookMarked className="h-4 w-4 text-primary" /> Saved
                 </Link>
                 <Link
+                  to="/reading-lists"
+                  onClick={closeMenu}
+                  className="col-span-2 inline-flex items-center gap-2 rounded-xl bg-secondary/70 px-3 py-3 text-sm font-semibold"
+                >
+                  <ListChecks className="h-4 w-4 text-primary" /> Reading lists
+                </Link>
+                <Link
                   to="/notifications"
                   onClick={closeMenu}
                   className="col-span-2 inline-flex items-center gap-2 rounded-xl bg-secondary/70 px-3 py-3 text-sm font-semibold"
@@ -298,7 +311,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t-[3px] border-accent bg-[#08281b] text-white">
+    <footer className="border-t-[3px] border-accent bg-brand-deep text-white">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.35fr_0.8fr_0.8fr_1.1fr] lg:gap-14 lg:py-16">
         <div>
           <div className="flex items-center gap-3">

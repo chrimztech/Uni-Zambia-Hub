@@ -155,7 +155,7 @@ function BannerSlider({ banners }: { banners: HeroBanner[] }) {
       ))}
 
       <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(4,22,14,.94)_0%,rgba(5,28,18,.84)_47%,rgba(4,18,12,.50)_100%)]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#061d13]/70 via-transparent to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-brand-deep/70 via-transparent to-black/20" />
 
       {count > 1 && (
         <>
@@ -233,12 +233,12 @@ function Home() {
 
   return (
     <PublicLayout>
-      <section className="relative isolate overflow-hidden bg-[#071f15] text-white">
+      <section className="relative isolate overflow-hidden bg-brand-deep text-white">
         {banners.length > 0 ? (
           <BannerSlider banners={banners} />
         ) : (
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_28%,rgba(217,166,37,.18),transparent_26%),linear-gradient(118deg,#0d3a27_0%,#082a1c_54%,#061c13_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_28%,rgba(243,149,12,.18),transparent_26%),linear-gradient(118deg,var(--brand-deep)_0%,var(--brand-deep)_54%,black_100%)]" />
             <div className="absolute -right-20 top-12 h-[520px] w-[520px] rounded-full border border-white/5" />
             <div className="absolute right-20 top-32 h-[360px] w-[360px] rounded-full border border-white/5" />
             <svg
@@ -290,7 +290,7 @@ function Home() {
               />
               <button
                 type="submit"
-                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-[#0b4b30] sm:px-6"
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white transition-colors hover:bg-brand-deep-hover sm:px-6"
                 suppressHydrationWarning
               >
                 <span className="hidden sm:inline">Search library</span>
@@ -355,7 +355,7 @@ function Home() {
       </section>
 
       {stats && (
-        <section className="bg-[#0a3222]" aria-label="Repository statistics">
+        <section className="bg-brand-deep" aria-label="Repository statistics">
           <div className="container-page grid grid-cols-2 lg:grid-cols-6">
             <StatPill value={stats.total_resources} label="Resources" icon={FileText} />
             <StatPill value={stats.demonstration_sites} label="Demo sites" icon={MapPin} />
@@ -553,7 +553,7 @@ function Home() {
         )}
       </section>
 
-      <section className="relative overflow-hidden bg-[#0a3222] py-20 text-white lg:py-24">
+      <section className="relative overflow-hidden bg-brand-deep py-20 text-white lg:py-24">
         <div
           className="absolute right-0 top-0 h-96 w-96 translate-x-1/3 -translate-y-1/3 rounded-full border border-white/10"
           aria-hidden="true"

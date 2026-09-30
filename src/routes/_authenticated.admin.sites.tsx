@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { api, toApiUrl, type DemonstrationSite } from "@/lib/api";
 import { slugify, formatDate } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, MapPin, Pencil, Trash2, ImagePlus, Search, LocateFixed } from "lucide-react";
+import { Plus, MapPin, Pencil, Trash2, ImagePlus, Search, LocateFixed, ClipboardList } from "lucide-react";
+import { SiteMonitoringPanel } from "@/components/site-monitoring-panel";
 import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/_authenticated/admin/sites")({
@@ -173,6 +174,7 @@ function LocationPicker({
 function SitesAdmin() {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [monitoringSite, setMonitoringSite] = useState<{ id: string; name: string } | null>(null);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [pendingImagePreview, setPendingImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -440,7 +442,7 @@ function SitesAdmin() {
                 <td className="px-4 py-3 text-muted-foreground">{site.technology ?? "—"}</td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    site.operational_status === "active" ? "bg-green-100 text-green-800" :
+                    site.operational_status === "active" ? "bg-success-soft text-success-soft-foreground" :
                     site.operational_status === "inactive" ? "bg-red-100 text-red-800" :
                     "bg-yellow-100 text-yellow-800"
                   }`}>
@@ -448,11 +450,14 @@ function SitesAdmin() {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => openDraft(site)} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                  <div className="flex items-center justify-end gap-3">
+                    <button onClick={() => setMonitoringSite({ id: site.id, name: site.name })} className="-m-2 inline-flex items-center gap-1 p-2 text-xs text-muted-foreground hover:text-primary hover:underline">
+                      <ClipboardList className="h-3 w-3" /> Monitoring
+                    </button>
+                    <button onClick={() => openDraft(site)} className="-m-2 inline-flex items-center gap-1 p-2 text-xs text-primary hover:underline">
                       <Pencil className="h-3 w-3" /> Edit
                     </button>
-                    <button onClick={() => remove(site.id, site.name)} className="inline-flex items-center gap-1 text-xs text-destructive hover:underline">
+                    <button onClick={() => remove(site.id, site.name)} className="-m-2 inline-flex items-center gap-1 p-2 text-xs text-destructive hover:underline">
                       <Trash2 className="h-3 w-3" /> Delete
                     </button>
                   </div>
@@ -467,6 +472,14 @@ function SitesAdmin() {
       </div>
 
       <style>{`.inp{display:block;width:100%;border-radius:.375rem;border:1px solid var(--color-border);background:var(--color-background);padding:.5rem .75rem;font-size:.875rem;line-height:1.25rem}`}</style>
+
+      {monitoringSite && (
+        <SiteMonitoringPanel
+          siteId={monitoringSite.id}
+          siteName={monitoringSite.name}
+          onClose={() => setMonitoringSite(null)}
+        />
+      )}
     </div>
   );
 }

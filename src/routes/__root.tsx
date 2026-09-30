@@ -19,11 +19,11 @@ function NotFoundComponent() {
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center px-4"
-      style={{ background: "linear-gradient(160deg, #f0fdf4 0%, #ffffff 60%)" }}
+      style={{ background: "linear-gradient(160deg, color-mix(in srgb, #01862b 6%, white) 0%, #ffffff 60%)" }}
     >
       <div className="w-full max-w-md text-center">
         {/* Logo */}
-        <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-green-100">
+        <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-success-soft">
           <img src="/logo.png" alt="UNZA" className="h-10 w-10 object-contain" />
         </div>
 

@@ -71,7 +71,7 @@ function SessionCard({
           </span>
         )}
         {registered && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 font-medium text-green-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 font-medium text-success-soft-foreground">
             <CheckCircle2 className="h-3 w-3" /> Registered
           </span>
         )}

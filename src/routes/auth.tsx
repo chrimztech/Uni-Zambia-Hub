@@ -871,7 +871,7 @@ function PasswordStrength({ password }: { password: string }) {
     (/[^A-Za-z0-9]/.test(password) ? 1 : 0);
 
   const labels = ["Weak", "Fair", "Good", "Strong"];
-  const colors = ["bg-red-500", "bg-orange-400", "bg-yellow-400", "bg-green-500"];
+  const colors = ["bg-red-500", "bg-orange-400", "bg-yellow-400", "bg-success"];
 
   return (
     <div className="mt-3">

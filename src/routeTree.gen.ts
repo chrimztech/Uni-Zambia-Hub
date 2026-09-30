@@ -28,6 +28,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as ResourceSlugRouteImport } from './routes/resource.$slug'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
+import { Route as AuthenticatedReadingListsRouteImport } from './routes/_authenticated.reading-lists'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authenticated.bookmarks'
@@ -142,6 +143,12 @@ const EventsSlugRoute = EventsSlugRouteImport.update({
   path: '/events/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedReadingListsRoute =
+  AuthenticatedReadingListsRouteImport.update({
+    id: '/reading-lists',
+    path: '/reading-lists',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -270,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/reading-lists': typeof AuthenticatedReadingListsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/resource/$slug': typeof ResourceSlugRoute
   '/events/': typeof EventsIndexRoute
@@ -308,6 +316,7 @@ export interface FileRoutesByTo {
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/reading-lists': typeof AuthenticatedReadingListsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/resource/$slug': typeof ResourceSlugRoute
   '/events': typeof EventsIndexRoute
@@ -349,6 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/reading-lists': typeof AuthenticatedReadingListsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/resource/$slug': typeof ResourceSlugRoute
   '/events/': typeof EventsIndexRoute
@@ -390,6 +400,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/notifications'
     | '/profile'
+    | '/reading-lists'
     | '/events/$slug'
     | '/resource/$slug'
     | '/events/'
@@ -428,6 +439,7 @@ export interface FileRouteTypes {
     | '/bookmarks'
     | '/notifications'
     | '/profile'
+    | '/reading-lists'
     | '/events/$slug'
     | '/resource/$slug'
     | '/events'
@@ -468,6 +480,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookmarks'
     | '/_authenticated/notifications'
     | '/_authenticated/profile'
+    | '/_authenticated/reading-lists'
     | '/events/$slug'
     | '/resource/$slug'
     | '/events/'
@@ -644,6 +657,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/events/$slug'
       preLoaderRoute: typeof EventsSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/reading-lists': {
+      id: '/_authenticated/reading-lists'
+      path: '/reading-lists'
+      fullPath: '/reading-lists'
+      preLoaderRoute: typeof AuthenticatedReadingListsRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -825,6 +845,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedBookmarksRoute: typeof AuthenticatedBookmarksRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedReadingListsRoute: typeof AuthenticatedReadingListsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -832,6 +853,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBookmarksRoute: AuthenticatedBookmarksRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedReadingListsRoute: AuthenticatedReadingListsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

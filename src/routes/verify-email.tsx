@@ -40,7 +40,7 @@ function VerifyEmailPage() {
           )}
           {status === "success" && (
             <>
-              <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
+              <CheckCircle className="mx-auto h-12 w-12 text-success" />
               <h1 className="mt-4 font-display text-xl font-bold">Email verified!</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Your account is now active. You can sign in and access the platform.

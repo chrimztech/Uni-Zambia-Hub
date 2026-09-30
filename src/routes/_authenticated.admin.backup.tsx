@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/admin/backup")({
 const TYPE_META: Record<Backup["type"], { label: string; color: string; Icon: typeof Database }> = {
   database: { label: "Database", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", Icon: Database },
   files: { label: "Files", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400", Icon: FileArchive },
-  full: { label: "Full", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", Icon: HardDrive },
+  full: { label: "Full", color: "bg-success-soft text-success-soft-foreground", Icon: HardDrive },
   other: { label: "Other", color: "bg-secondary text-muted-foreground", Icon: HardDrive },
 };
 
@@ -124,7 +124,7 @@ function BackupAdmin() {
                   <span className="rounded-full bg-secondary px-2 py-0.5 font-medium text-muted-foreground">Default</span>
                 )}
                 {location.writable ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 font-medium text-success-soft-foreground">
                     <CheckCircle2 className="h-3 w-3" /> Writable
                   </span>
                 ) : (

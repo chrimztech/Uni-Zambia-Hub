@@ -81,10 +81,10 @@ function SessionsAdmin() {
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Wifi className="h-4 w-4 text-green-500" />
+            <Wifi className="h-4 w-4 text-success" />
             Active sessions
           </div>
-          <div className="mt-1 text-2xl font-bold text-green-600">{active.length}</div>
+          <div className="mt-1 text-2xl font-bold text-success-soft-foreground">{active.length}</div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -103,10 +103,10 @@ function SessionsAdmin() {
       </div>
 
       {/* Active Sessions */}
-      <h2 className="mt-8 text-lg font-semibold text-green-700">Active sessions</h2>
-      <div className="mt-3 overflow-x-auto rounded-lg border border-green-200 bg-card">
+      <h2 className="mt-8 text-lg font-semibold text-success-soft-foreground">Active sessions</h2>
+      <div className="mt-3 overflow-x-auto rounded-lg border border-success-soft bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-green-50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+          <thead className="bg-success-soft/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-4 py-3">User</th>
               <th className="px-4 py-3">Device / Browser</th>

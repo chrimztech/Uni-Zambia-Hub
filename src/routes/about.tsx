@@ -140,7 +140,7 @@ function AboutPage() {
       </section>
 
       <section className="container-page grid gap-12 py-16 lg:grid-cols-2 lg:items-center lg:py-24">
-        <div className="rounded-2xl bg-[#0a3222] p-7 text-white sm:p-9">
+        <div className="rounded-2xl bg-brand-deep p-7 text-white sm:p-9">
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent">
             The knowledge platform
           </p>

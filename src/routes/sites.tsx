@@ -49,7 +49,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function statusCfg(status: string) {
-  if (status === "active") return { cls: "bg-green-100 text-green-700", Icon: CheckCircle2 };
+  if (status === "active") return { cls: "bg-success-soft text-success-soft-foreground", Icon: CheckCircle2 };
   if (status === "inactive") return { cls: "bg-red-100 text-red-700", Icon: XCircle };
   if (status === "decommissioned") return { cls: "bg-gray-100 text-gray-600", Icon: XCircle };
   return { cls: "bg-amber-100 text-amber-700", Icon: Clock };
