@@ -89,6 +89,8 @@ export type ResourceSummary = {
   published_at: string | null;
   thumbnail_url: string | null;
   category_slug: string | null;
+  average_rating: number;
+  review_count: number;
 };
 
 export type ResourceDetail = {
@@ -116,6 +118,29 @@ export type ResourceDetail = {
   files: ContentFile[];
   related_resources: ResourceSummary[];
   thumbnail_url: string | null;
+  average_rating: number;
+  review_count: number;
+};
+
+export type Review = {
+  id: string;
+  user_name: string;
+  own: boolean;
+  rating: number;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ReviewAdmin = {
+  id: string;
+  content_item_id: string;
+  resource_title: string;
+  user_name: string;
+  user_email: string;
+  rating: number;
+  body: string | null;
+  created_at: string;
 };
 
 export type EventItem = {
@@ -646,6 +671,7 @@ export const api = {
       }).toString()}`),
     resource: (slug: string) => request<ResourceDetail>(`/api/public/resources/${slug}`),
     recordView: (id: string) => request<void>(`/api/public/resources/${id}/views`, { method: "POST" }),
+    reviews: (id: string) => request<Review[]>(`/api/public/resources/${id}/reviews`),
     events: () => request<EventItem[]>("/api/public/events"),
     event: (slug: string) => request<EventItem>(`/api/public/events/${slug}`),
     categories: () => request<Category[]>("/api/public/categories"),
@@ -669,6 +695,10 @@ export const api = {
       request<void>(`/api/account/bookmarks/${contentId}`, { method: "POST" }),
     removeBookmark: (contentId: string) =>
       request<void>(`/api/account/bookmarks/${contentId}`, { method: "DELETE" }),
+    submitReview: (contentId: string, payload: { rating: number; body?: string }) =>
+      request<Review>(`/api/account/reviews/${contentId}`, { method: "POST", body: payload }),
+    deleteReview: (contentId: string) =>
+      request<void>(`/api/account/reviews/${contentId}`, { method: "DELETE" }),
     recentViews: () => request<RecentView[]>("/api/account/recent-views"),
     notifications: () => request<NotificationItem[]>("/api/account/notifications"),
     markNotificationsRead: (payload: { all: boolean; ids?: string[] }) =>
@@ -767,6 +797,8 @@ export const api = {
     reports: () => request<Reports>("/api/admin/reports"),
     resourceAccess: () => request<ResourceAccessRow[]>("/api/admin/reports/access"),
     reportDownloadUrl: () => "/api/admin/reports/download/pdf",
+    reviews: () => request<ReviewAdmin[]>("/api/admin/reviews"),
+    deleteReview: (id: string) => request<void>(`/api/admin/reviews/${id}`, { method: "DELETE" }),
     audit: (params?: { action?: string; entityType?: string }) => {
       const q = new URLSearchParams();
       if (params?.action) q.set("action", params.action);

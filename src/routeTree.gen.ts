@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminTaxonomyRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminSitesRouteImport } from './routes/_authenticated.admin.sites'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
 import { Route as AuthenticatedAdminSessionsRouteImport } from './routes/_authenticated.admin.sessions'
+import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authenticated.admin.reviews'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated.admin.reports'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated.admin.events'
 import { Route as AuthenticatedAdminDigitizationRouteImport } from './routes/_authenticated.admin.digitization'
@@ -209,6 +210,12 @@ const AuthenticatedAdminSessionsRoute =
     path: '/sessions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminReviewsRoute =
+  AuthenticatedAdminReviewsRouteImport.update({
+    id: '/reviews',
+    path: '/reviews',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReportsRoute =
   AuthenticatedAdminReportsRouteImport.update({
     id: '/reports',
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/admin/digitization': typeof AuthenticatedAdminDigitizationRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/sites': typeof AuthenticatedAdminSitesRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/admin/digitization': typeof AuthenticatedAdminDigitizationRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/sites': typeof AuthenticatedAdminSitesRoute
@@ -370,6 +379,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/digitization': typeof AuthenticatedAdminDigitizationRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/_authenticated/admin/reviews': typeof AuthenticatedAdminReviewsRoute
   '/_authenticated/admin/sessions': typeof AuthenticatedAdminSessionsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/sites': typeof AuthenticatedAdminSitesRoute
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/admin/digitization'
     | '/admin/events'
     | '/admin/reports'
+    | '/admin/reviews'
     | '/admin/sessions'
     | '/admin/settings'
     | '/admin/sites'
@@ -451,6 +462,7 @@ export interface FileRouteTypes {
     | '/admin/digitization'
     | '/admin/events'
     | '/admin/reports'
+    | '/admin/reviews'
     | '/admin/sessions'
     | '/admin/settings'
     | '/admin/sites'
@@ -492,6 +504,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/digitization'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/reports'
+    | '/_authenticated/admin/reviews'
     | '/_authenticated/admin/sessions'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/sites'
@@ -742,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSessionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/reviews': {
+      id: '/_authenticated/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AuthenticatedAdminReviewsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/reports': {
       id: '/_authenticated/admin/reports'
       path: '/reports'
@@ -810,6 +830,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminDigitizationRoute: typeof AuthenticatedAdminDigitizationRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
+  AuthenticatedAdminReviewsRoute: typeof AuthenticatedAdminReviewsRoute
   AuthenticatedAdminSessionsRoute: typeof AuthenticatedAdminSessionsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminSitesRoute: typeof AuthenticatedAdminSitesRoute
@@ -828,6 +849,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminDigitizationRoute: AuthenticatedAdminDigitizationRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
+  AuthenticatedAdminReviewsRoute: AuthenticatedAdminReviewsRoute,
   AuthenticatedAdminSessionsRoute: AuthenticatedAdminSessionsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminSitesRoute: AuthenticatedAdminSitesRoute,

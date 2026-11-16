@@ -14,6 +14,8 @@ import { ResourceThumbnail } from "@/components/resource-thumbnail";
 import { CitationExport } from "@/components/citation-export";
 import { BookmarkButton } from "@/components/bookmark-button";
 import { AddToReadingListButton } from "@/components/add-to-reading-list-button";
+import { ResourceReviews } from "@/components/resource-reviews";
+import { StarRatingDisplay } from "@/components/star-rating";
 import { toast } from "sonner";
 import type { PDFDocumentLoadingTask } from "pdfjs-dist";
 
@@ -138,6 +140,9 @@ function ResourcePage() {
                   Published {formatDate(item.published_at)}
                 </span>
               )}
+              {item.review_count > 0 && (
+                <StarRatingDisplay rating={item.average_rating} count={item.review_count} />
+              )}
             </div>
 
             {/* Title */}
@@ -240,6 +245,13 @@ function ResourcePage() {
                 )}
               </section>
             )}
+
+            <ResourceReviews
+              contentId={item.id}
+              slug={item.slug}
+              averageRating={item.average_rating}
+              reviewCount={item.review_count}
+            />
 
             <RelatedResources resources={item.related_resources ?? []} />
           </article>

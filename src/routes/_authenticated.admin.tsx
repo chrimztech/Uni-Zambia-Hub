@@ -24,6 +24,7 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
+  Star,
   Tags,
   UserCircle,
   Users,
@@ -116,6 +117,7 @@ function AdminLayout() {
         { to: "/admin/training", label: "Training", hint: "Sessions and registrations", icon: GraduationCap, iconBg: "bg-teal-600/80" },
         { to: "/admin/sites", label: "Demo Sites", hint: "Showcase field installations", icon: MapPin, iconBg: "bg-rose-600/80" },
         { to: "/admin/banners", label: "Hero Banners", hint: "Home page image slideshow", icon: Images, iconBg: "bg-fuchsia-600/80" },
+        { to: "/admin/reviews", label: "Reviews", hint: "Moderate user ratings and reviews", icon: Star, iconBg: "bg-yellow-500/80" },
       ],
     },
     {
