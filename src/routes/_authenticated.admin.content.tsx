@@ -5,7 +5,10 @@ import { api, toApiUrl, type ContentEditor, type ContentFile } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { slugify, contentTypeLabel, accessLabel, formatDate } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Upload, X, Send, CheckCircle2, Archive, Image, Trash2, ShieldAlert } from "lucide-react";
+import { Plus, Upload, X, Send, CheckCircle2, Archive, Image, Trash2, ShieldAlert, RotateCcw } from "lucide-react";
+import { readDraft, writeDraft, clearDraft, useAutosaveDraft, type StoredDraft } from "@/hooks/use-draft-storage";
+
+const CONTENT_DRAFT_KEY = "ubirr:admin:content:draft";
 
 export const Route = createFileRoute("/_authenticated/admin/content")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -28,6 +31,14 @@ const actionToStatus: Record<string, string> = {
   publish: "published", archive: "archived",
 };
 
+// Local calendar day in YYYY-MM-DD, matching what <input type="date"> expects
+const todayISO = () => {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
+};
+
 type EditingItem = ContentEditor | Partial<ContentEditor>;
 
 function ContentAdmin() {
@@ -37,6 +48,7 @@ function ContentAdmin() {
   const { open } = Route.useSearch();
   const [editing, setEditing] = useState<EditingItem | null>(null);
   const [filter, setFilter] = useState<string>("all");
+  const [resumable, setResumable] = useState<StoredDraft<EditingItem> | null>(null);
 
   const { data: list, isError: listError, error: listErrorMsg } = useQuery({
     queryKey: ["admin", "content", filter],
@@ -52,15 +64,39 @@ function ContentAdmin() {
     }
   }, [open, list]);
 
-  const newDraft = () => setEditing({
-    title: "", slug: "", summary: "", body: "", content_type: "report",
-    access_level: "public", status: "draft", downloadable: true,
-    copyright_status: "", licence_information: "", language: "en",
-    keywords: "", authors: "", publisher: "",
-    publication_date: null, activity_date: null, source_institution: "",
-    external_identifier: "", bibliographic_info: "",
-    category_id: null, department_id: null,
-  });
+  // Offer to resume an unsaved resource left over from a previous visit (e.g. the
+  // tab was closed, or the browser crashed, before the admin clicked Save).
+  useEffect(() => {
+    if (editing || open) return;
+    setResumable(readDraft<EditingItem>(CONTENT_DRAFT_KEY));
+  }, [editing, open]);
+
+  useAutosaveDraft(CONTENT_DRAFT_KEY, editing, !!editing);
+
+  const resumeDraft = () => {
+    if (!resumable) return;
+    setEditing(resumable.data);
+    setResumable(null);
+  };
+
+  const discardDraft = () => {
+    clearDraft(CONTENT_DRAFT_KEY);
+    setResumable(null);
+  };
+
+  const newDraft = () => {
+    clearDraft(CONTENT_DRAFT_KEY);
+    setResumable(null);
+    setEditing({
+      title: "", slug: "", summary: "", body: "", content_type: "report",
+      access_level: "public", status: "draft", downloadable: true,
+      copyright_status: "", licence_information: "", language: "en",
+      keywords: "", authors: "", publisher: "",
+      publication_date: null, activity_date: todayISO(), source_institution: "",
+      external_identifier: "", bibliographic_info: "",
+      category_id: null, department_id: null,
+    });
+  };
 
   const save = async () => {
     if (!editing?.title) return toast.error("Title required");
@@ -93,6 +129,7 @@ function ContentAdmin() {
       if (editing.id) res = await api.admin.updateContent(editing.id, payload);
       else res = await api.admin.createContent(payload);
       toast.success("Saved");
+      clearDraft(CONTENT_DRAFT_KEY);
       setEditing(res);
       qc.invalidateQueries({ queryKey: ["admin", "content"] });
     } catch (e: any) {
@@ -144,12 +181,12 @@ function ContentAdmin() {
       <EditorPanel
         editing={editing}
         setEditing={(e) => setEditing(e)}
-        onBack={() => setEditing(null)}
+        onBack={() => { writeDraft(CONTENT_DRAFT_KEY, editing); setEditing(null); }}
         save={save}
         uploadFile={uploadFile}
         transition={transition}
         isAdmin={isAdmin}
-        onDeleted={() => { setEditing(null); qc.invalidateQueries({ queryKey: ["admin", "content"] }); }}
+        onDeleted={() => { clearDraft(CONTENT_DRAFT_KEY); setEditing(null); qc.invalidateQueries({ queryKey: ["admin", "content"] }); }}
       />
     );
   }
@@ -165,6 +202,16 @@ function ContentAdmin() {
           <Plus className="h-4 w-4" /> Add resource
         </button>
       </div>
+      {resumable && (
+        <div className="mt-4 flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+          <RotateCcw className="h-4 w-4 shrink-0 text-primary" />
+          <div className="flex-1 text-sm">
+            <strong>Unsaved resource found:</strong> "{(resumable.data.title as string) || "Untitled"}" — left unsaved on {new Date(resumable.savedAt).toLocaleString()}.
+          </div>
+          <button onClick={resumeDraft} className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90">Resume</button>
+          <button onClick={discardDraft} className="shrink-0 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary">Discard</button>
+        </div>
+      )}
       <div className="mt-6 flex flex-wrap gap-2 text-xs">
         {["all", "draft", "submitted", "approved", "published", "archived", "rejected", "returned"].map((s) => (
           <button key={s} onClick={() => setFilter(s)} className={`rounded-full border px-3 py-1.5 ${filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary"}`}>{s}</button>

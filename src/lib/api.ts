@@ -285,7 +285,7 @@ export type ApprovalItem = {
   summary: string | null;
 };
 
-export type EventAdmin = EventItem;
+export type EventAdmin = EventItem & { registration_count: number };
 
 export type DigitizationRecord = {
   id: string;
@@ -504,6 +504,30 @@ export type MyTrainingRegistration = {
   session_title: string;
   session_slug: string;
   session_start_date: string;
+  status: string;
+  registered_at: string;
+};
+
+export type EventPublic = EventItem & {
+  registration_count: number;
+  registered: boolean;
+};
+
+export type EventRegistrationAdmin = {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  status: string;
+  registered_at: string;
+};
+
+export type MyEventRegistration = {
+  id: string;
+  event_id: string;
+  event_title: string;
+  event_slug: string;
+  event_start_date: string;
   status: string;
   registered_at: string;
 };
@@ -751,6 +775,10 @@ export const api = {
       form.append("file", file);
       return request<{ url: string }>(`/api/admin/events/${id}/image`, { method: "POST", rawBody: form });
     },
+    eventRegistrations: (id: string) =>
+      request<EventRegistrationAdmin[]>(`/api/admin/events/${id}/registrations`),
+    updateEventRegistrationStatus: (registrationId: string, status: string) =>
+      request<void>(`/api/admin/events/registrations/${registrationId}/status`, { method: "PUT", body: { status } }),
     digitization: () => request<DigitizationRecord[]>("/api/admin/digitization"),
     createDigitization: (payload: Record<string, unknown>) =>
       request<DigitizationRecord>("/api/admin/digitization", { method: "POST", body: payload }),
@@ -861,6 +889,8 @@ export const api = {
       request<void>(`/api/admin/training/${id}`, { method: "DELETE" }),
     trainingRegistrations: (id: string) =>
       request<TrainingRegistrationAdmin[]>(`/api/admin/training/${id}/registrations`),
+    updateTrainingRegistrationStatus: (registrationId: string, status: string) =>
+      request<void>(`/api/admin/training/registrations/${registrationId}/status`, { method: "PUT", body: { status } }),
     uploadTrainingImage: (id: string, file: File) => {
       const form = new FormData();
       form.append("file", file);
@@ -874,5 +904,13 @@ export const api = {
     cancel: (sessionId: string) =>
       request<void>(`/api/account/training/${sessionId}/register`, { method: "DELETE" }),
     myRegistrations: () => request<MyTrainingRegistration[]>("/api/account/training/my-registrations"),
+  },
+  userEvents: {
+    events: () => request<EventPublic[]>("/api/account/events"),
+    register: (eventId: string) =>
+      request<void>(`/api/account/events/${eventId}/register`, { method: "POST" }),
+    cancel: (eventId: string) =>
+      request<void>(`/api/account/events/${eventId}/register`, { method: "DELETE" }),
+    myRegistrations: () => request<MyEventRegistration[]>("/api/account/events/my-registrations"),
   },
 };

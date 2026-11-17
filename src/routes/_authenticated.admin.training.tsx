@@ -120,6 +120,15 @@ function TrainingAdmin() {
     }
   };
 
+  const updateRegistrationStatus = async (registrationId: string, status: string) => {
+    try {
+      await api.admin.updateTrainingRegistrationStatus(registrationId, status);
+      qc.invalidateQueries({ queryKey: ["admin", "training", expandedId, "registrations"] });
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update status");
+    }
+  };
+
   const toggleRegistrations = (id: string) => {
     setExpandedId(prev => prev === id ? null : id);
   };
@@ -330,7 +339,15 @@ function TrainingAdmin() {
                                   <td className="py-1 pr-4">{r.user_name || "—"}</td>
                                   <td className="py-1 pr-4 text-muted-foreground">{r.user_email}</td>
                                   <td className="py-1 pr-4">
-                                    <span className={`capitalize ${r.status === "registered" ? "text-success-soft-foreground" : "text-muted-foreground"}`}>{r.status}</span>
+                                    <select
+                                      value={r.status}
+                                      onChange={(e) => updateRegistrationStatus(r.id, e.target.value)}
+                                      className={`rounded-md border border-border bg-background px-1.5 py-0.5 text-xs capitalize ${r.status === "registered" ? "text-success-soft-foreground" : r.status === "attended" ? "text-primary" : "text-muted-foreground"}`}
+                                    >
+                                      <option value="registered">Registered</option>
+                                      <option value="attended">Attended</option>
+                                      <option value="cancelled">Cancelled</option>
+                                    </select>
                                   </td>
                                   <td className="py-1 text-muted-foreground">{formatDate(r.registered_at)}</td>
                                 </tr>
