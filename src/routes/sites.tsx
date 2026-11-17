@@ -183,7 +183,7 @@ function SiteModal({ site, onClose }: { site: DemonstrationSite; onClose: () => 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-8"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       {/* Backdrop */}
