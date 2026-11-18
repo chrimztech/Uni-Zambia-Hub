@@ -271,6 +271,16 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
   onDeleted: () => void;
 }) {
   const qc = useQueryClient();
+
+  // Older resources saved before "Date added" existed have no activity_date — backfill it
+  // locally so the read-only field isn't blank. Doesn't touch the server until next Save.
+  useEffect(() => {
+    if (editing.id && !(editing as ContentEditor).activity_date) {
+      setEditing({ ...editing, activity_date: todayISO() } as any);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editing.id]);
+
   const { data: files, refetch: refetchFiles } = useQuery({
     queryKey: ["admin", "files", editing.id],
     enabled: !!editing.id,
@@ -301,6 +311,19 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
       toast.success("Thumbnail uploaded");
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
+    }
+  };
+
+  const removeThumbnail = async () => {
+    if (!editing.id) return;
+    if (!window.confirm("Remove this thumbnail?")) return;
+    try {
+      await api.admin.deleteThumbnail(editing.id as string);
+      setEditing({ ...editing, thumbnail_url: null } as any);
+      qc.invalidateQueries({ queryKey: ["admin", "content"] });
+      toast.success("Thumbnail removed");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to remove thumbnail");
     }
   };
 
@@ -374,8 +397,23 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
           <Field label="Authors"><input value={editing.authors ?? ""} onChange={(e) => setEditing({ ...editing, authors: e.target.value })} className="input" /></Field>
           <Field label="Publisher"><input value={editing.publisher ?? ""} onChange={(e) => setEditing({ ...editing, publisher: e.target.value })} className="input" /></Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Publication date"><input type="date" value={(editing as ContentEditor).publication_date ?? ""} onChange={(e) => setEditing({ ...editing, publication_date: e.target.value || null } as any)} className="input" /></Field>
-            <Field label="Activity date"><input type="date" value={(editing as ContentEditor).activity_date ?? ""} onChange={(e) => setEditing({ ...editing, activity_date: e.target.value || null } as any)} className="input" /></Field>
+            <Field label="Publication date">
+              <input
+                type="date"
+                max={todayISO()}
+                value={(editing as ContentEditor).publication_date ?? ""}
+                onChange={(e) => setEditing({ ...editing, publication_date: e.target.value || null } as any)}
+                className="input"
+              />
+            </Field>
+            <Field label="Date added">
+              <input
+                type="date"
+                disabled
+                value={(editing as ContentEditor).activity_date ?? ""}
+                className="input cursor-not-allowed opacity-70"
+              />
+            </Field>
           </div>
           <Field label="Source institution"><input value={(editing as ContentEditor).source_institution ?? ""} onChange={(e) => setEditing({ ...editing, source_institution: e.target.value } as any)} className="input" /></Field>
           <Field label="DOI / ISBN / External ID"><input value={(editing as ContentEditor).external_identifier ?? ""} onChange={(e) => setEditing({ ...editing, external_identifier: e.target.value } as any)} className="input" /></Field>
@@ -468,10 +506,20 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
                   <Image className="h-6 w-6" />
                 </div>
               )}
-              <label className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-md bg-secondary px-3 py-2 text-xs font-medium hover:bg-secondary/70">
-                <Upload className="h-3.5 w-3.5" /> {(editing as ContentEditor).thumbnail_url ? "Replace" : "Upload thumbnail"}
-                <input type="file" hidden accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) await uploadThumbnail(f); }} />
-              </label>
+              <div className="flex gap-2">
+                <label className="inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-md bg-secondary px-3 py-2 text-xs font-medium hover:bg-secondary/70">
+                  <Upload className="h-3.5 w-3.5" /> {(editing as ContentEditor).thumbnail_url ? "Replace" : "Upload thumbnail"}
+                  <input type="file" hidden accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) await uploadThumbnail(f); }} />
+                </label>
+                {(editing as ContentEditor).thumbnail_url && (
+                  <button
+                    onClick={removeThumbnail}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-md border border-destructive/40 px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Remove
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </aside>

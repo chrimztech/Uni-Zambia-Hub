@@ -817,6 +817,8 @@ export const api = {
       formData.append("file", file);
       return request<{ url: string }>(`/api/admin/content/${id}/thumbnail`, { method: "POST", rawBody: formData, timeout: 120_000 });
     },
+    deleteThumbnail: (id: string) =>
+      request<void>(`/api/admin/content/${id}/thumbnail`, { method: "DELETE" }),
     taxonomy: (type: string) => request<TaxonomyEntry[]>(`/api/admin/taxonomy/${type}`),
     createTaxonomy: (type: string, payload: Record<string, unknown>) =>
       request<TaxonomyEntry>(`/api/admin/taxonomy/${type}`, { method: "POST", body: payload }),

@@ -1,5 +1,19 @@
-export const formatDate = (d: string | Date | null | undefined) =>
-  d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
+// Date-only values (e.g. a LocalDate like "2026-03-05" with no time/zone) must be parsed as
+// a local calendar date, not UTC — `new Date("2026-03-05")` parses as UTC midnight, which
+// renders as the previous day for any viewer west of UTC. Timestamps (with a time part)
+// don't have this problem and are parsed normally.
+export const formatDate = (d: string | Date | null | undefined) => {
+  if (!d) return "—";
+  if (typeof d === "string") {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+    if (m) {
+      const [, y, mo, day] = m;
+      return new Date(Number(y), Number(mo) - 1, Number(day))
+        .toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    }
+  }
+  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+};
 
 export const formatBytes = (n: number | null | undefined) => {
   if (!n) return "—";
