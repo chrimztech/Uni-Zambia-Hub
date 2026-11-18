@@ -283,6 +283,15 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
   });
   const TYPES = typeDefs?.map((t) => t.slug).filter((s): s is string => s != null) ?? FALLBACK_TYPES;
 
+  const { data: categories } = useQuery({
+    queryKey: ["taxonomy", "categories"],
+    queryFn: () => api.admin.taxonomy("categories"),
+  });
+  const { data: departments } = useQuery({
+    queryKey: ["taxonomy", "departments"],
+    queryFn: () => api.admin.taxonomy("departments"),
+  });
+
   const uploadThumbnail = async (file: File) => {
     if (!editing.id) { toast.error("Save the draft first"); return; }
     try {
@@ -385,6 +394,26 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
           <Field label="Access level">
             <select value={editing.access_level ?? "draft"} onChange={(e) => setEditing({ ...editing, access_level: e.target.value })} className="input">
               {ACCESS.map((a) => <option key={a} value={a}>{accessLabel[a]}</option>)}
+            </select>
+          </Field>
+          <Field label="Category">
+            <select
+              value={editing.category_id ?? ""}
+              onChange={(e) => setEditing({ ...editing, category_id: e.target.value || null })}
+              className="input"
+            >
+              <option value="">No category</option>
+              {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Department">
+            <select
+              value={editing.department_id ?? ""}
+              onChange={(e) => setEditing({ ...editing, department_id: e.target.value || null })}
+              className="input"
+            >
+              <option value="">No department</option>
+              {departments?.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
           </Field>
           <Field label="Copyright"><input value={editing.copyright_status ?? ""} onChange={(e) => setEditing({ ...editing, copyright_status: e.target.value })} className="input" /></Field>
