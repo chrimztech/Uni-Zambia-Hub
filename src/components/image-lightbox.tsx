@@ -58,11 +58,16 @@ export function ClickToEnlargeImage({
           >
             <X className="h-5 w-5" />
           </button>
-          <img
-            src={src}
-            alt={alt}
-            className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain shadow-2xl"
-          />
+          {/* A definite-size box + object-contain scales the image to fill it in either
+              direction — a small source image is scaled UP to use the space, not just
+              capped from scaling down, which a bare max-h/max-w on the <img> can't do. */}
+          <div className="h-[90vh] w-[90vw] flex items-center justify-center">
+            <img
+              src={src}
+              alt={alt}
+              className="h-full w-full rounded-lg object-contain shadow-2xl"
+            />
+          </div>
         </div>
       )}
     </>

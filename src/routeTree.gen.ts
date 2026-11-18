@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
-import { Route as TrainingRouteImport } from './routes/training'
 import { Route as SitesRouteImport } from './routes/sites'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
@@ -25,7 +24,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrainingIndexRouteImport } from './routes/training.index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
+import { Route as TrainingSlugRouteImport } from './routes/training.$slug'
 import { Route as ResourceSlugRouteImport } from './routes/resource.$slug'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as AuthenticatedReadingListsRouteImport } from './routes/_authenticated.reading-lists'
@@ -53,11 +54,6 @@ import { Route as AuthenticatedAdminApprovalsRouteImport } from './routes/_authe
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrainingRoute = TrainingRouteImport.update({
-  id: '/training',
-  path: '/training',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitesRoute = SitesRouteImport.update({
@@ -129,9 +125,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrainingIndexRoute = TrainingIndexRouteImport.update({
+  id: '/training/',
+  path: '/training/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainingSlugRoute = TrainingSlugRouteImport.update({
+  id: '/training/$slug',
+  path: '/training/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResourceSlugRoute = ResourceSlugRouteImport.update({
@@ -278,7 +284,6 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sites': typeof SitesRoute
-  '/training': typeof TrainingRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/bookmarks': typeof AuthenticatedBookmarksRoute
@@ -287,7 +292,9 @@ export interface FileRoutesByFullPath {
   '/reading-lists': typeof AuthenticatedReadingListsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/resource/$slug': typeof ResourceSlugRoute
+  '/training/$slug': typeof TrainingSlugRoute
   '/events/': typeof EventsIndexRoute
+  '/training/': typeof TrainingIndexRoute
   '/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/backup': typeof AuthenticatedAdminBackupRoute
@@ -319,7 +326,6 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sites': typeof SitesRoute
-  '/training': typeof TrainingRoute
   '/verify-email': typeof VerifyEmailRoute
   '/bookmarks': typeof AuthenticatedBookmarksRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -327,7 +333,9 @@ export interface FileRoutesByTo {
   '/reading-lists': typeof AuthenticatedReadingListsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/resource/$slug': typeof ResourceSlugRoute
+  '/training/$slug': typeof TrainingSlugRoute
   '/events': typeof EventsIndexRoute
+  '/training': typeof TrainingIndexRoute
   '/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/backup': typeof AuthenticatedAdminBackupRoute
@@ -361,7 +369,6 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sites': typeof SitesRoute
-  '/training': typeof TrainingRoute
   '/verify-email': typeof VerifyEmailRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/bookmarks': typeof AuthenticatedBookmarksRoute
@@ -370,7 +377,9 @@ export interface FileRoutesById {
   '/_authenticated/reading-lists': typeof AuthenticatedReadingListsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/resource/$slug': typeof ResourceSlugRoute
+  '/training/$slug': typeof TrainingSlugRoute
   '/events/': typeof EventsIndexRoute
+  '/training/': typeof TrainingIndexRoute
   '/_authenticated/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/backup': typeof AuthenticatedAdminBackupRoute
@@ -404,7 +413,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/sites'
-    | '/training'
     | '/verify-email'
     | '/admin'
     | '/bookmarks'
@@ -413,7 +421,9 @@ export interface FileRouteTypes {
     | '/reading-lists'
     | '/events/$slug'
     | '/resource/$slug'
+    | '/training/$slug'
     | '/events/'
+    | '/training/'
     | '/admin/approvals'
     | '/admin/audit'
     | '/admin/backup'
@@ -445,7 +455,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/sites'
-    | '/training'
     | '/verify-email'
     | '/bookmarks'
     | '/notifications'
@@ -453,7 +462,9 @@ export interface FileRouteTypes {
     | '/reading-lists'
     | '/events/$slug'
     | '/resource/$slug'
+    | '/training/$slug'
     | '/events'
+    | '/training'
     | '/admin/approvals'
     | '/admin/audit'
     | '/admin/backup'
@@ -486,7 +497,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/sites'
-    | '/training'
     | '/verify-email'
     | '/_authenticated/admin'
     | '/_authenticated/bookmarks'
@@ -495,7 +505,9 @@ export interface FileRouteTypes {
     | '/_authenticated/reading-lists'
     | '/events/$slug'
     | '/resource/$slug'
+    | '/training/$slug'
     | '/events/'
+    | '/training/'
     | '/_authenticated/admin/approvals'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/backup'
@@ -529,11 +541,12 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SitesRoute: typeof SitesRoute
-  TrainingRoute: typeof TrainingRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   EventsSlugRoute: typeof EventsSlugRoute
   ResourceSlugRoute: typeof ResourceSlugRoute
+  TrainingSlugRoute: typeof TrainingSlugRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  TrainingIndexRoute: typeof TrainingIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -543,13 +556,6 @@ declare module '@tanstack/react-router' {
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/training': {
-      id: '/training'
-      path: '/training'
-      fullPath: '/training'
-      preLoaderRoute: typeof TrainingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sites': {
@@ -650,11 +656,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/training/': {
+      id: '/training/'
+      path: '/training'
+      fullPath: '/training/'
+      preLoaderRoute: typeof TrainingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/': {
       id: '/events/'
       path: '/events'
       fullPath: '/events/'
       preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/training/$slug': {
+      id: '/training/$slug'
+      path: '/training/$slug'
+      fullPath: '/training/$slug'
+      preLoaderRoute: typeof TrainingSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resource/$slug': {
@@ -897,11 +917,12 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SitesRoute: SitesRoute,
-  TrainingRoute: TrainingRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   EventsSlugRoute: EventsSlugRoute,
   ResourceSlugRoute: ResourceSlugRoute,
+  TrainingSlugRoute: TrainingSlugRoute,
   EventsIndexRoute: EventsIndexRoute,
+  TrainingIndexRoute: TrainingIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

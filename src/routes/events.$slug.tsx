@@ -84,11 +84,11 @@ function EventDetail() {
       <article className="container-page max-w-4xl py-12">
         <Link to="/events" className="text-sm text-muted-foreground hover:text-primary">← All events</Link>
         {ev.banner_image_url && (
-          <div className="mt-4 h-64 w-full overflow-hidden rounded-2xl border border-border bg-secondary/40 sm:h-80">
+          <div className="mt-4 max-h-[70vh] w-full overflow-hidden rounded-2xl border border-border bg-secondary/40">
             <ClickToEnlargeImage
               src={toApiUrl(ev.banner_image_url)}
               alt={ev.title}
-              className="h-full w-full object-cover"
+              className="max-h-[70vh] w-full object-contain"
             />
           </div>
         )}

@@ -709,6 +709,7 @@ export const api = {
     site: (slug: string) => request<DemonstrationSite>(`/api/public/sites/${slug}`),
     captchaConfig: () => request<CaptchaConfig>("/api/public/captcha-config"),
     trainingSessions: () => request<TrainingSessionListing[]>("/api/public/training"),
+    trainingSession: (slug: string) => request<TrainingSessionListing>(`/api/public/training/${slug}`),
     rss: () => request<string>("/api/public/rss"),
     sitemap: () => request<string>("/api/public/sitemap"),
   },

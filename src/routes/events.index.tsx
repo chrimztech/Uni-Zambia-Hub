@@ -3,7 +3,6 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { api, toApiUrl } from "@/lib/api";
 import { PageHero, PublicLayout } from "@/components/public-layout";
 import { formatDate } from "@/lib/format";
-import { ClickToEnlargeImage } from "@/components/image-lightbox";
 import { ArrowRight, Calendar, MapPin } from "lucide-react";
 
 const eventsQuery = queryOptions({
@@ -57,10 +56,10 @@ function EventsPage() {
               >
                 {event.banner_image_url && (
                   <div className="h-44 w-full overflow-hidden bg-secondary/40">
-                    <ClickToEnlargeImage
+                    <img
                       src={toApiUrl(event.banner_image_url)}
                       alt={event.title}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      className="h-full w-full object-contain"
                     />
                   </div>
                 )}

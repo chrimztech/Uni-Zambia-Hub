@@ -8,7 +8,7 @@ import { GraduationCap, Calendar, MapPin, Users, Clock, CheckCircle2, Clock3, XC
 import { toast } from "sonner";
 import { useState } from "react";
 
-export const Route = createFileRoute("/training")({
+export const Route = createFileRoute("/training/")({
   head: () => ({
     meta: [
       { title: "Training Programmes — UNZA Sanitation Hub" },
@@ -100,7 +100,11 @@ function SessionCard({
         )}
       </div>
 
-      <h3 className="mt-3 font-display text-lg font-semibold">{session.title}</h3>
+      <h3 className="mt-3 font-display text-lg font-semibold">
+        <Link to="/training/$slug" params={{ slug: session.slug }} className="hover:text-primary hover:underline">
+          {session.title}
+        </Link>
+      </h3>
       {session.description && (
         <p className="mt-2 line-clamp-3 flex-1 text-sm text-muted-foreground">
           {session.description}
@@ -170,6 +174,13 @@ function SessionCard({
             {registering ? "Registering…" : isFull ? "Fully booked" : registrationStatus === "rejected" ? "Register again" : "Register"}
           </button>
         )}
+        <Link
+          to="/training/$slug"
+          params={{ slug: session.slug }}
+          className="inline-flex items-center gap-1 self-center text-xs font-semibold text-primary hover:underline"
+        >
+          View details →
+        </Link>
       </div>
       </div>
     </div>
