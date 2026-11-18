@@ -4,8 +4,9 @@ import { Fragment, useEffect, useState } from "react";
 import { api, toApiUrl, type EventAdmin } from "@/lib/api";
 import { slugify, formatDate } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, Trash2, ImagePlus, Calendar, RotateCcw, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, ImagePlus, Calendar, RotateCcw, Users, ChevronDown, ChevronUp, Clock3, CheckCircle2, XCircle } from "lucide-react";
 import { readDraft, clearDraft, useAutosaveDraft, type StoredDraft } from "@/hooks/use-draft-storage";
+import { StatusPill, RegistrationSummary } from "@/components/registration-status";
 
 const EVENT_DRAFT_KEY = "ubirr:admin:events:draft";
 
@@ -40,13 +41,20 @@ function EventsAdmin() {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const updateRegistrationStatus = async (registrationId: string, status: string) => {
+  const updateRegistrationStatus = async (registrationId: string, status: string, note?: string) => {
     try {
-      await api.admin.updateEventRegistrationStatus(registrationId, status);
+      await api.admin.updateEventRegistrationStatus(registrationId, status, note);
       qc.invalidateQueries({ queryKey: ["admin", "events", expandedId, "registrations"] });
+      qc.invalidateQueries({ queryKey: ["admin", "events"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to update status");
     }
+  };
+
+  const rejectRegistration = (registrationId: string) => {
+    const note = window.prompt("Reason for rejecting this request (optional, shown to the applicant):");
+    if (note === null) return;
+    updateRegistrationStatus(registrationId, "rejected", note || undefined);
   };
 
   // Offer to resume an unsaved event left over from a previous visit (tab closed,
@@ -251,10 +259,15 @@ function EventsAdmin() {
                   <td className="px-4 py-3">
                     <button
                       onClick={() => toggleRegistrations(e.id)}
-                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
                     >
                       <Users className="h-3 w-3" />
                       {e.registration_count}
+                      {e.pending_count > 0 && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                          <Clock3 className="h-2.5 w-2.5" /> {e.pending_count} pending
+                        </span>
+                      )}
                       {expandedId === e.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                     </button>
                   </td>
@@ -272,43 +285,75 @@ function EventsAdmin() {
                 </tr>
                 {expandedId === e.id && (
                   <tr>
-                    <td colSpan={6} className="bg-secondary/30 px-4 py-3">
+                    <td colSpan={6} className="bg-secondary/30 px-4 py-4">
                       {!registrations ? (
                         <p className="text-xs text-muted-foreground">Loading...</p>
                       ) : registrations.length === 0 ? (
                         <p className="text-xs text-muted-foreground">No registrations yet.</p>
                       ) : (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-xs">
-                            <thead>
-                              <tr className="text-left text-muted-foreground">
-                                <th className="py-1 pr-4 font-medium">Name</th>
-                                <th className="py-1 pr-4 font-medium">Email</th>
-                                <th className="py-1 pr-4 font-medium">Status</th>
-                                <th className="py-1 font-medium">Registered</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border/50">
-                              {registrations.map((r) => (
-                                <tr key={r.id}>
-                                  <td className="py-1 pr-4">{r.user_name || "—"}</td>
-                                  <td className="py-1 pr-4 text-muted-foreground">{r.user_email}</td>
-                                  <td className="py-1 pr-4">
-                                    <select
-                                      value={r.status}
-                                      onChange={(e) => updateRegistrationStatus(r.id, e.target.value)}
-                                      className={`rounded-md border border-border bg-background px-1.5 py-0.5 text-xs capitalize ${r.status === "registered" ? "text-success-soft-foreground" : r.status === "attended" ? "text-primary" : "text-muted-foreground"}`}
-                                    >
-                                      <option value="registered">Registered</option>
-                                      <option value="attended">Attended</option>
-                                      <option value="cancelled">Cancelled</option>
-                                    </select>
-                                  </td>
-                                  <td className="py-1 text-muted-foreground">{formatDate(r.registered_at)}</td>
+                        <div className="space-y-3">
+                          <RegistrationSummary registrations={registrations} />
+                          <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                            <table className="w-full text-xs">
+                              <thead className="bg-secondary/40 text-left text-muted-foreground">
+                                <tr>
+                                  <th className="py-2 pl-3 pr-4 font-medium">Applicant</th>
+                                  <th className="py-2 pr-4 font-medium">Status</th>
+                                  <th className="py-2 pr-4 font-medium">Submitted</th>
+                                  <th className="py-2 pr-3 font-medium text-right">Actions</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody className="divide-y divide-border/50">
+                                {registrations.map((r) => (
+                                  <tr key={r.id} className="align-middle">
+                                    <td className="py-2 pl-3 pr-4">
+                                      <div className="flex items-center gap-2">
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+                                          {(r.user_name || r.user_email || "?").charAt(0).toUpperCase()}
+                                        </span>
+                                        <div>
+                                          <div className="font-medium">{r.user_name || "—"}</div>
+                                          <div className="text-muted-foreground">{r.user_email}</div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="py-2 pr-4"><StatusPill status={r.status} /></td>
+                                    <td className="py-2 pr-4 text-muted-foreground">{formatDate(r.registered_at)}</td>
+                                    <td className="py-2 pr-3 text-right">
+                                      {r.status === "pending" ? (
+                                        <div className="flex items-center justify-end gap-1.5">
+                                          <button
+                                            onClick={() => updateRegistrationStatus(r.id, "approved")}
+                                            className="inline-flex items-center gap-1 rounded-md bg-success-soft px-2 py-1 text-[11px] font-semibold text-success-soft-foreground hover:opacity-80"
+                                          >
+                                            <CheckCircle2 className="h-3 w-3" /> Approve
+                                          </button>
+                                          <button
+                                            onClick={() => rejectRegistration(r.id)}
+                                            className="inline-flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-[11px] font-semibold text-destructive hover:opacity-80"
+                                          >
+                                            <XCircle className="h-3 w-3" /> Reject
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <select
+                                          value={r.status}
+                                          onChange={(e) => updateRegistrationStatus(r.id, e.target.value)}
+                                          className="rounded-md border border-border bg-background px-1.5 py-1 text-[11px]"
+                                        >
+                                          <option value="pending">Pending</option>
+                                          <option value="approved">Approved</option>
+                                          <option value="rejected">Rejected</option>
+                                          <option value="attended">Attended</option>
+                                          <option value="cancelled">Cancelled</option>
+                                        </select>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       )}
                     </td>

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { formatDate, accessLabel } from "@/lib/format";
 import { ResourceThumbnail } from "@/components/resource-thumbnail";
+import { ClickToEnlargeImage } from "@/components/image-lightbox";
 
 const featuredQuery = queryOptions({
   queryKey: ["public", "featured"],
@@ -128,7 +129,6 @@ function BannerSlider({ banners }: { banners: HeroBanner[] }) {
       aria-label="Featured work"
     >
       <style>{`
-        @keyframes heroKenBurns { from { transform: scale(1); } to { transform: scale(1.06); } }
         @keyframes heroProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
       `}</style>
 
@@ -143,12 +143,7 @@ function BannerSlider({ banners }: { banners: HeroBanner[] }) {
             <img
               src={toApiUrl(banner.image_url)}
               alt=""
-              className="h-full w-full object-cover"
-              style={
-                index === current
-                  ? { animation: `heroKenBurns ${SLIDE_MS}ms ease-out both` }
-                  : undefined
-              }
+              className="h-full w-full object-contain"
             />
           )}
         </div>
@@ -204,10 +199,89 @@ function BannerSlider({ banners }: { banners: HeroBanner[] }) {
   );
 }
 
+// A single flyer card: full image, no crop/zoom, sized to its own natural
+// proportions so a tall poster doesn't end up narrow with empty bars on either
+// side, and a wide banner naturally spans close to the full width on its own.
+function FlyerCard({ flyer }: { flyer: HeroBanner }) {
+  const imgClass = "block max-h-[75vh] w-auto max-w-full rounded-2xl object-contain";
+  if (!flyer.image_url) return null;
+  return flyer.link_url ? (
+    <a
+      href={flyer.link_url}
+      target={flyer.link_url.startsWith("http") ? "_blank" : undefined}
+      rel={flyer.link_url.startsWith("http") ? "noreferrer" : undefined}
+      className="block"
+    >
+      <img src={toApiUrl(flyer.image_url)} alt={flyer.title} className={imgClass} />
+    </a>
+  ) : (
+    <ClickToEnlargeImage src={toApiUrl(flyer.image_url)} alt={flyer.title} className={imgClass} />
+  );
+}
+
+// Flyers/adverts are self-contained designs (their own text, dates, logos already
+// baked into the image), so they get their own section — full image, no dark scrim,
+// no competing site copy — rather than living inside the hero carousel. With more
+// than one, they auto-rotate like the hero does, instead of stacking indefinitely.
+function FlyerSection({ flyers }: { flyers: HeroBanner[] }) {
+  const [current, setCurrent] = useState(0);
+  const count = flyers.length;
+
+  useEffect(() => {
+    if (count < 2) return;
+    const timer = setInterval(() => setCurrent((p) => (p + 1) % count), SLIDE_MS);
+    return () => clearInterval(timer);
+  }, [count]);
+
+  if (count === 0) return null;
+  if (count === 1) {
+    return (
+      <section className="container-page flex justify-center py-8 lg:py-10" aria-label="Announcements">
+        <div className="overflow-hidden rounded-2xl shadow-sm transition-shadow hover:shadow-md">
+          <FlyerCard flyer={flyers[0]} />
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="container-page py-8 lg:py-10" aria-label="Announcements">
+      <div className="relative mx-auto flex max-w-fit flex-col items-center">
+        {flyers.map((flyer, index) => (
+          <div
+            key={flyer.id}
+            className={`overflow-hidden rounded-2xl shadow-sm transition-opacity duration-700 ${index === current ? "relative opacity-100" : "pointer-events-none absolute inset-0 opacity-0"}`}
+            aria-hidden={index !== current}
+          >
+            <FlyerCard flyer={flyer} />
+          </div>
+        ))}
+        <div className="mt-4 flex items-center gap-1.5">
+          {flyers.map((flyer, index) => (
+            <button
+              key={flyer.id}
+              type="button"
+              onClick={() => setCurrent(index)}
+              aria-label={`Show announcement ${index + 1}`}
+              aria-current={index === current ? "true" : undefined}
+              className={`h-1.5 rounded-full transition-all ${index === current ? "w-6 bg-primary" : "w-1.5 bg-border hover:bg-muted-foreground/40"}`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Home() {
   const { data } = useSuspenseQuery(featuredQuery);
-  const { data: banners } = useSuspenseQuery(bannersQuery);
+  const { data: allBanners } = useSuspenseQuery(bannersQuery);
   const stats = data?.stats;
+  // Hero photos sit behind the fixed title/search and need the dark scrim for legibility.
+  // Flyers/adverts already carry their own text and design, so they get their own
+  // section further down — full image, no overlay — instead of competing with the hero copy.
+  const banners = allBanners.filter((b) => b.display_mode !== "flyer");
+  const flyers = allBanners.filter((b) => b.display_mode === "flyer");
 
   const focusAreas = [
     {
@@ -353,6 +427,8 @@ function Home() {
           </aside>
         </div>
       </section>
+
+      <FlyerSection flyers={flyers} />
 
       {stats && (
         <section className="bg-brand-deep" aria-label="Repository statistics">

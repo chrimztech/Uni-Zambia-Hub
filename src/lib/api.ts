@@ -190,6 +190,7 @@ export type HeroBanner = {
   subtitle: string | null;
   image_url: string | null;
   link_url: string | null;
+  display_mode: "overlay" | "flyer";
   display_order: number;
   active: boolean;
   created_at: string;
@@ -285,7 +286,7 @@ export type ApprovalItem = {
   summary: string | null;
 };
 
-export type EventAdmin = EventItem & { registration_count: number };
+export type EventAdmin = EventItem & { registration_count: number; pending_count: number };
 
 export type DigitizationRecord = {
   id: string;
@@ -461,6 +462,7 @@ export type TrainingSessionAdmin = {
   published_at: string | null;
   created_at: string;
   registration_count: number;
+  pending_count: number;
   image_url: string | null;
 };
 
@@ -486,7 +488,7 @@ export type TrainingSessionListing = {
 };
 
 export type TrainingSessionPublic = TrainingSessionListing & {
-  registered: boolean;
+  registration_status: RegistrationStatus | null;
 };
 
 export type TrainingRegistrationAdmin = {
@@ -510,8 +512,10 @@ export type MyTrainingRegistration = {
 
 export type EventPublic = EventItem & {
   registration_count: number;
-  registered: boolean;
+  registration_status: RegistrationStatus | null;
 };
+
+export type RegistrationStatus = "pending" | "approved" | "rejected" | "cancelled" | "attended";
 
 export type EventRegistrationAdmin = {
   id: string;
@@ -777,8 +781,8 @@ export const api = {
     },
     eventRegistrations: (id: string) =>
       request<EventRegistrationAdmin[]>(`/api/admin/events/${id}/registrations`),
-    updateEventRegistrationStatus: (registrationId: string, status: string) =>
-      request<void>(`/api/admin/events/registrations/${registrationId}/status`, { method: "PUT", body: { status } }),
+    updateEventRegistrationStatus: (registrationId: string, status: string, note?: string) =>
+      request<void>(`/api/admin/events/registrations/${registrationId}/status`, { method: "PUT", body: { status, note } }),
     digitization: () => request<DigitizationRecord[]>("/api/admin/digitization"),
     createDigitization: (payload: Record<string, unknown>) =>
       request<DigitizationRecord>("/api/admin/digitization", { method: "POST", body: payload }),
@@ -889,8 +893,8 @@ export const api = {
       request<void>(`/api/admin/training/${id}`, { method: "DELETE" }),
     trainingRegistrations: (id: string) =>
       request<TrainingRegistrationAdmin[]>(`/api/admin/training/${id}/registrations`),
-    updateTrainingRegistrationStatus: (registrationId: string, status: string) =>
-      request<void>(`/api/admin/training/registrations/${registrationId}/status`, { method: "PUT", body: { status } }),
+    updateTrainingRegistrationStatus: (registrationId: string, status: string, note?: string) =>
+      request<void>(`/api/admin/training/registrations/${registrationId}/status`, { method: "PUT", body: { status, note } }),
     uploadTrainingImage: (id: string, file: File) => {
       const form = new FormData();
       form.append("file", file);

@@ -28,6 +28,7 @@ function BannersAdmin() {
     title: "",
     subtitle: "",
     link_url: "",
+    display_mode: "overlay",
     display_order: data.length,
     active: true,
   });
@@ -51,6 +52,7 @@ function BannersAdmin() {
         title: draft.title.trim(),
         subtitle: draft.subtitle || null,
         link_url: draft.link_url || null,
+        display_mode: draft.display_mode ?? "overlay",
         display_order: draft.display_order ?? 0,
         active: draft.active ?? true,
       };
@@ -141,10 +143,31 @@ function BannersAdmin() {
               <label className="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-border cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors" style={{ height: "180px" }}>
                 <ImagePlus className="h-9 w-9 text-muted-foreground/30 mb-2.5" />
                 <span className="text-sm font-medium text-muted-foreground">Click to upload banner image</span>
-                <span className="text-xs text-muted-foreground/50 mt-1">PNG, JPG, WEBP — shown behind the hero text</span>
+                <span className="text-xs text-muted-foreground/50 mt-1">PNG, JPG, WEBP</span>
                 <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} />
               </label>
             )}
+          </div>
+
+          {/* Display mode */}
+          <div className="mb-5">
+            <span className="block text-sm font-medium mb-2">How should this be shown?</span>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors ${(draft.display_mode ?? "overlay") === "overlay" ? "border-primary bg-primary/5" : "border-border hover:bg-secondary/40"}`}>
+                <input type="radio" name="display_mode" className="mt-0.5 accent-primary" checked={(draft.display_mode ?? "overlay") === "overlay"} onChange={() => setDraft({ ...draft, display_mode: "overlay" })} />
+                <span>
+                  <span className="block text-sm font-medium">Hero photo</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">Background photo in the rotating hero, with the site's title and search over it. Best for scenic/ambient photos.</span>
+                </span>
+              </label>
+              <label className={`flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors ${draft.display_mode === "flyer" ? "border-primary bg-primary/5" : "border-border hover:bg-secondary/40"}`}>
+                <input type="radio" name="display_mode" className="mt-0.5 accent-primary" checked={draft.display_mode === "flyer"} onChange={() => setDraft({ ...draft, display_mode: "flyer" })} />
+                <span>
+                  <span className="block text-sm font-medium">Flyer / advert</span>
+                  <span className="block text-xs text-muted-foreground mt-0.5">Shown as its own section, full image, no text on top. Use this when the image already has its own text or design (a poster, flyer, advert).</span>
+                </span>
+              </label>
+            </div>
           </div>
 
           {/* Fields */}
@@ -153,10 +176,12 @@ function BannersAdmin() {
               <span className="text-sm font-medium">Title *</span>
               <input className="inp mt-1" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} placeholder="Shown as alt text and in admin list" />
             </label>
-            <label className="sm:col-span-2">
-              <span className="text-sm font-medium">Subtitle / caption <span className="text-muted-foreground font-normal">(optional)</span></span>
-              <input className="inp mt-1" value={draft.subtitle ?? ""} onChange={e => setDraft({ ...draft, subtitle: e.target.value })} placeholder="Brief caption displayed over the image" />
-            </label>
+            {(draft.display_mode ?? "overlay") === "overlay" && (
+              <label className="sm:col-span-2">
+                <span className="text-sm font-medium">Subtitle / caption <span className="text-muted-foreground font-normal">(optional)</span></span>
+                <input className="inp mt-1" value={draft.subtitle ?? ""} onChange={e => setDraft({ ...draft, subtitle: e.target.value })} placeholder="Brief caption displayed over the image" />
+              </label>
+            )}
             <label>
               <span className="text-sm font-medium">Link URL <span className="text-muted-foreground font-normal">(optional)</span></span>
               <input className="inp mt-1" value={draft.link_url ?? ""} onChange={e => setDraft({ ...draft, link_url: e.target.value })} placeholder="https://… or /library" />
@@ -217,7 +242,12 @@ function BannersAdmin() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium line-clamp-1">{b.title}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium line-clamp-1">{b.title}</span>
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${b.display_mode === "flyer" ? "bg-accent/10 text-accent" : "bg-secondary text-muted-foreground"}`}>
+                        {b.display_mode === "flyer" ? "Flyer" : "Hero photo"}
+                      </span>
+                    </div>
                     {b.subtitle && <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{b.subtitle}</div>}
                     {b.link_url && <div className="text-xs text-primary/70 mt-0.5 truncate max-w-[220px]">{b.link_url}</div>}
                   </td>

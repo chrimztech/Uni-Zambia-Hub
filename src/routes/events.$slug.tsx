@@ -7,7 +7,7 @@ import { PublicLayout } from "@/components/public-layout";
 import { ClickToEnlargeImage } from "@/components/image-lightbox";
 import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
-import { Calendar, MapPin, User2, Mail, ExternalLink, Users, LogIn, CheckCircle2 } from "lucide-react";
+import { Calendar, MapPin, User2, Mail, ExternalLink, Users, LogIn, CheckCircle2, Clock3, XCircle } from "lucide-react";
 
 const eventQuery = (slug: string) => queryOptions({
   queryKey: ["event", slug],
@@ -49,12 +49,14 @@ function EventDetail() {
 
   if (!ev) return null;
   const userEvent = userEvents?.find((e) => e.id === ev.id);
+  const status = userEvent?.registration_status ?? null;
+  const hasActiveRequest = status === "pending" || status === "approved";
 
   const handleRegister = async () => {
     setRegistering(true);
     try {
       await api.userEvents.register(ev.id);
-      toast.success("Successfully registered!");
+      toast.success("Registration submitted — pending review");
       qc.invalidateQueries({ queryKey: ["user", "events"] });
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : "Registration failed");
@@ -112,27 +114,39 @@ function EventDetail() {
               >
                 <LogIn className="h-4 w-4" /> Sign in to register
               </Link>
-            ) : userEvent?.registered ? (
+            ) : status === "attended" ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary">
+                <CheckCircle2 className="h-4 w-4" /> Attended
+              </span>
+            ) : hasActiveRequest ? (
               <>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-sm font-semibold text-success-soft-foreground">
-                  <CheckCircle2 className="h-4 w-4" /> You're registered
+                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold ${status === "approved" ? "bg-success-soft text-success-soft-foreground" : "bg-amber-100 text-amber-700"}`}>
+                  {status === "approved" ? <CheckCircle2 className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}
+                  {status === "approved" ? "You're confirmed" : "Pending approval"}
                 </span>
                 <button
                   onClick={handleCancel}
                   disabled={registering}
                   className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-secondary disabled:opacity-60"
                 >
-                  {registering ? "Cancelling…" : "Cancel registration"}
+                  {registering ? "Cancelling…" : status === "pending" ? "Cancel request" : "Cancel registration"}
                 </button>
               </>
             ) : (
-              <button
-                onClick={handleRegister}
-                disabled={registering}
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
-              >
-                {registering ? "Registering…" : "Register"}
-              </button>
+              <>
+                {status === "rejected" && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1.5 text-sm font-semibold text-destructive">
+                    <XCircle className="h-4 w-4" /> Not approved
+                  </span>
+                )}
+                <button
+                  onClick={handleRegister}
+                  disabled={registering}
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+                >
+                  {registering ? "Registering…" : status === "rejected" ? "Register again" : "Register"}
+                </button>
+              </>
             )}
             {userEvent && (
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">

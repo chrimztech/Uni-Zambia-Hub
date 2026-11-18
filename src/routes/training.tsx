@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, toApiUrl, type TrainingSessionListing, type TrainingSessionPublic } from "@/lib/api";
+import { api, toApiUrl, type TrainingSessionListing, type TrainingSessionPublic, type RegistrationStatus } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHero, PublicLayout } from "@/components/public-layout";
 import { formatDate, accessLabel, contentTypeLabel } from "@/lib/format";
-import { GraduationCap, Calendar, MapPin, Users, Clock, CheckCircle2, LogIn } from "lucide-react";
+import { GraduationCap, Calendar, MapPin, Users, Clock, CheckCircle2, Clock3, XCircle, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
@@ -33,13 +33,13 @@ function formatTime(t: string | null) {
 
 function SessionCard({
   session,
-  registered,
+  registrationStatus,
   onRegister,
   onCancel,
   registering,
 }: {
   session: TrainingSessionListing;
-  registered?: boolean;
+  registrationStatus?: RegistrationStatus | null;
   onRegister?: () => void;
   onCancel?: () => void;
   registering?: boolean;
@@ -49,6 +49,8 @@ function SessionCard({
   const isCompleted = session.status === "completed";
   const isFull =
     !isCompleted && session.capacity != null && session.registration_count >= session.capacity;
+  const hasActiveRequest = registrationStatus === "pending" || registrationStatus === "approved";
+  const canRegister = !hasActiveRequest && registrationStatus !== "attended";
 
   return (
     <div
@@ -71,14 +73,29 @@ function SessionCard({
             Completed
           </span>
         )}
-        {!isCompleted && isFull && !registered && (
+        {!isCompleted && isFull && !hasActiveRequest && (
           <span className="rounded-full bg-orange-100 px-2 py-0.5 font-medium text-orange-700">
             Fully booked
           </span>
         )}
-        {registered && (
+        {registrationStatus === "pending" && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700">
+            <Clock3 className="h-3 w-3" /> Pending approval
+          </span>
+        )}
+        {registrationStatus === "approved" && (
           <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 font-medium text-success-soft-foreground">
-            <CheckCircle2 className="h-3 w-3" /> Registered
+            <CheckCircle2 className="h-3 w-3" /> Confirmed
+          </span>
+        )}
+        {registrationStatus === "attended" && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary">
+            <CheckCircle2 className="h-3 w-3" /> Attended
+          </span>
+        )}
+        {registrationStatus === "rejected" && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 font-medium text-destructive">
+            <XCircle className="h-3 w-3" /> Not approved
           </span>
         )}
       </div>
@@ -136,21 +153,21 @@ function SessionCard({
           >
             <LogIn className="h-3.5 w-3.5" /> Sign in to register
           </button>
-        ) : registered ? (
+        ) : registrationStatus === "attended" ? null : hasActiveRequest ? (
           <button
             onClick={onCancel}
             disabled={registering}
             className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-destructive hover:text-destructive disabled:opacity-50"
           >
-            {registering ? "Cancelling…" : "Cancel registration"}
+            {registering ? "Cancelling…" : registrationStatus === "pending" ? "Cancel request" : "Cancel registration"}
           </button>
         ) : (
           <button
             onClick={onRegister}
-            disabled={registering || isFull}
+            disabled={registering || isFull || !canRegister}
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            {registering ? "Registering…" : isFull ? "Fully booked" : "Register"}
+            {registering ? "Registering…" : isFull ? "Fully booked" : registrationStatus === "rejected" ? "Register again" : "Register"}
           </button>
         )}
       </div>
@@ -180,14 +197,14 @@ function TrainingPage() {
     queryFn: () => api.public.resources({ q: "", type: "training_material" }),
   });
 
-  const registeredIds = new Set(userSessions?.filter((s) => s.registered).map((s) => s.id) ?? []);
+  const statusBySessionId = new Map(userSessions?.map((s) => [s.id, s.registration_status]) ?? []);
 
   const handleRegister = async (sessionId: string) => {
     if (!user) return;
     setRegistering(sessionId);
     try {
       await api.userTraining.register(sessionId);
-      toast.success("Successfully registered!");
+      toast.success("Registration submitted — pending review");
       qc.invalidateQueries({ queryKey: ["user", "training"] });
       qc.invalidateQueries({ queryKey: ["public", "training"] });
     } catch (error: unknown) {
@@ -212,12 +229,7 @@ function TrainingPage() {
     }
   };
 
-  const sessions: (TrainingSessionListing & { registered?: boolean })[] = (
-    publicSessions ?? []
-  ).map((s) => ({
-    ...s,
-    registered: registeredIds.has(s.id),
-  }));
+  const sessions: TrainingSessionListing[] = publicSessions ?? [];
 
   return (
     <PublicLayout>
@@ -267,7 +279,7 @@ function TrainingPage() {
                 <SessionCard
                   key={s.id}
                   session={s}
-                  registered={s.registered}
+                  registrationStatus={statusBySessionId.get(s.id)}
                   onRegister={() => handleRegister(s.id)}
                   onCancel={() => handleCancel(s.id)}
                   registering={registering === s.id}
