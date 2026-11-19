@@ -87,10 +87,18 @@ export type ResourceSummary = {
   content_type: string;
   access_level: string;
   published_at: string | null;
+  publication_year: number | null;
   thumbnail_url: string | null;
   category_slug: string | null;
   average_rating: number;
   review_count: number;
+};
+
+export type ResourcePage = {
+  items: ResourceSummary[];
+  total: number;
+  page: number;
+  page_size: number;
 };
 
 export type ResourceDetail = {
@@ -109,7 +117,7 @@ export type ResourceDetail = {
   keywords: string | null;
   authors: string | null;
   publisher: string | null;
-  publication_date: string | null;
+  publication_year: number | null;
   activity_date: string | null;
   source_institution: string | null;
   external_identifier: string | null;
@@ -264,7 +272,7 @@ export type ContentEditor = {
   keywords: string | null;
   authors: string | null;
   publisher: string | null;
-  publication_date: string | null;
+  publication_year: number | null;
   activity_date: string | null;
   source_institution: string | null;
   external_identifier: string | null;
@@ -690,10 +698,12 @@ export const api = {
   public: {
     home: () => request<HomeResponse>("/api/public/home"),
     banners: () => request<HeroBanner[]>("/api/public/banners"),
-    resources: (params: { q?: string; type?: string; category?: string; department?: string }) =>
-      request<ResourceSummary[]>(`/api/public/resources?${new URLSearchParams({
+    resources: (params: { q?: string; type?: string; category?: string; department?: string; page?: number; pageSize?: number }) =>
+      request<ResourcePage>(`/api/public/resources?${new URLSearchParams({
         q: params.q ?? "",
         type: params.type ?? "all",
+        page: String(params.page ?? 0),
+        pageSize: String(params.pageSize ?? 20),
         ...(params.category ? { category: params.category } : {}),
         ...(params.department ? { department: params.department } : {}),
       }).toString()}`),

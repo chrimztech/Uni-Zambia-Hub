@@ -168,7 +168,7 @@ function AboutPage() {
           </ul>
           <Link
             to="/library"
-            search={{ q: "", type: "all", category: "", department: "" }}
+            search={{ q: "", type: "all", category: "", department: "", page: 0 }}
             className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-accent"
           >
             Explore the library <ArrowRight className="h-4 w-4" />

@@ -49,7 +49,7 @@ function CategoriesPage() {
               <Link
                 key={category.id}
                 to="/library"
-                search={{ q: "", type: "all", category: category.slug, department: "" }}
+                search={{ q: "", type: "all", category: category.slug, department: "", page: 0 }}
                 className="surface-card interactive-card group flex min-h-44 flex-col p-6"
               >
                 <div className="flex items-start justify-between gap-3">

@@ -14,6 +14,7 @@ const galleryQuery = queryOptions({
       slug: item.slug,
       thumbnail_path: item.thumbnail_url,
       published_at: item.published_at,
+      publication_year: item.publication_year,
     })) as Item[],
 });
 
@@ -38,6 +39,7 @@ type Item = {
   slug: string;
   thumbnail_path: string | null;
   published_at: string | null;
+  publication_year: number | null;
 };
 
 function Thumb({ item }: { item: Item }) {
@@ -66,7 +68,7 @@ function Thumb({ item }: { item: Item }) {
         <h3 className="line-clamp-2 text-sm font-bold transition-colors group-hover:text-primary">
           {item.title}
         </h3>
-        <p className="mt-2 text-xs text-muted-foreground">{formatDate(item.published_at)}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{item.publication_year ?? formatDate(item.published_at)}</p>
       </div>
     </Link>
   );

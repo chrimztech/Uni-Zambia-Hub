@@ -37,7 +37,7 @@ function RelatedResources({ resources }: { resources: ResourceSummary[] }) {
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-xs text-muted-foreground mb-0.5">
-                {contentTypeLabel[r.content_type] ?? r.content_type} · {formatDate(r.published_at)}
+                {contentTypeLabel[r.content_type] ?? r.content_type} · {r.publication_year ?? formatDate(r.published_at)}
               </div>
               <div className="font-medium leading-snug group-hover:text-primary transition-colors line-clamp-2">{r.title}</div>
               <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.summary ?? "—"}</p>
@@ -165,6 +165,7 @@ function ResourcePage() {
                 title: item.title,
                 authors: item.authors,
                 published_at: item.published_at,
+                publication_year: item.publication_year,
                 publisher: item.publisher,
                 slug: item.slug,
                 content_type: item.content_type,
@@ -305,12 +306,12 @@ function ResourcePage() {
                       </div>
                     </div>
                   )}
-                  {item.publication_date && (
+                  {item.publication_year && (
                     <div className="flex items-start gap-3 px-5 py-3.5">
                       <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                       <div className="min-w-0">
-                        <dt className="text-xs text-muted-foreground">Publication date</dt>
-                        <dd className="mt-0.5 text-sm font-medium">{item.publication_date}</dd>
+                        <dt className="text-xs text-muted-foreground">Publication year</dt>
+                        <dd className="mt-0.5 text-sm font-medium">{item.publication_year}</dd>
                       </div>
                     </div>
                   )}

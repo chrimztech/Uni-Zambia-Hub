@@ -205,7 +205,7 @@ function TrainingPage() {
 
   const { data: resources, isLoading: loadingResources } = useQuery({
     queryKey: ["training", "materials"],
-    queryFn: () => api.public.resources({ q: "", type: "training_material" }),
+    queryFn: async () => (await api.public.resources({ q: "", type: "training_material", pageSize: 60 })).items,
   });
 
   const statusBySessionId = new Map(userSessions?.map((s) => [s.id, s.registration_status]) ?? []);
@@ -310,7 +310,7 @@ function TrainingPage() {
               <Link
                 key={t}
                 to="/library"
-                search={{ type: t, q: "", category: "", department: "" }}
+                search={{ type: t, q: "", category: "", department: "", page: 0 }}
                 className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold transition-colors hover:border-primary hover:text-primary"
               >
                 {contentTypeLabel[t] ?? t}
@@ -332,7 +332,7 @@ function TrainingPage() {
                 Check the{" "}
                 <Link
                   to="/library"
-                  search={{ q: "", type: "all", category: "", department: "" }}
+                  search={{ q: "", type: "all", category: "", department: "", page: 0 }}
                   className="text-primary hover:underline"
                 >
                   resource library
@@ -353,7 +353,7 @@ function TrainingPage() {
                     <span className="rounded bg-primary/10 px-2 py-0.5 font-medium text-primary">
                       {contentTypeLabel[r.content_type] ?? r.content_type}
                     </span>
-                    <span className="text-muted-foreground">{formatDate(r.published_at)}</span>
+                    <span className="text-muted-foreground">{r.publication_year ?? formatDate(r.published_at)}</span>
                   </div>
                   <h3 className="mt-3 font-display text-lg font-semibold group-hover:text-primary">
                     {r.title}

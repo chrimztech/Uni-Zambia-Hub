@@ -50,7 +50,7 @@ function NotFoundComponent() {
           </Link>
           <Link
             to="/library"
-            search={{ q: "", type: "all", category: "", department: "" }}
+            search={{ q: "", type: "all", category: "", department: "", page: 0 }}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
             <Search className="h-4 w-4" />

@@ -5,6 +5,7 @@ type Item = {
   title: string;
   authors?: string | null;
   published_at?: string | null;
+  publication_year?: number | null;
   publisher?: string | null;
   slug: string;
   content_type?: string;
@@ -15,20 +16,35 @@ function authorList(a?: string | null) {
   return a;
 }
 
+// A proper citation needs the resource's real publication year, not the date it was added
+// to the Hub — fall back to that only when no publication year was recorded. Most library
+// metadata only ever specifies a year anyway, so every style below cites just the year
+// rather than fabricating a day/month that was never actually given.
+function citeYear(i: Item): number | "n.d." {
+  if (i.publication_year) return i.publication_year;
+  if (i.published_at) {
+    const m = /^(\d{4})-/.exec(i.published_at);
+    if (m) return Number(m[1]);
+    const y = new Date(i.published_at).getFullYear();
+    if (!Number.isNaN(y)) return y;
+  }
+  return "n.d.";
+}
+
 function buildAPA(i: Item, url: string) {
-  const year = i.published_at ? new Date(i.published_at).getFullYear() : "n.d.";
+  const year = citeYear(i);
   return `${authorList(i.authors)} (${year}). ${i.title}. ${i.publisher ?? "University of Zambia Biosafety Repository"}. ${url}`;
 }
 function buildMLA(i: Item, url: string) {
-  const date = i.published_at ? new Date(i.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "n.d.";
-  return `${authorList(i.authors)}. "${i.title}." ${i.publisher ?? "University of Zambia Biosafety Repository"}, ${date}, ${url}.`;
+  const year = citeYear(i);
+  return `${authorList(i.authors)}. "${i.title}." ${i.publisher ?? "University of Zambia Biosafety Repository"}, ${year}, ${url}.`;
 }
 function buildChicago(i: Item, url: string) {
-  const year = i.published_at ? new Date(i.published_at).getFullYear() : "n.d.";
+  const year = citeYear(i);
   return `${authorList(i.authors)}. "${i.title}." ${i.publisher ?? "University of Zambia Biosafety Repository"}, ${year}. ${url}.`;
 }
 function buildBibTeX(i: Item, url: string) {
-  const year = i.published_at ? new Date(i.published_at).getFullYear() : "n.d.";
+  const year = citeYear(i);
   const key = i.slug.replace(/[^a-z0-9]/gi, "");
   return `@misc{${key},\n  title  = {${i.title}},\n  author = {${authorList(i.authors)}},\n  year   = {${year}},\n  howpublished = {\\url{${url}}},\n  note   = {${i.publisher ?? "UNZA Biosafety Repository"}}\n}`;
 }

@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { api, toApiUrl } from "@/lib/api";
 import { PageHero, PublicLayout } from "@/components/public-layout";
 import { formatDate, accessLabel, contentTypeLabel } from "@/lib/format";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
   X,
@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   Calendar,
   ChevronRight,
+  ChevronLeft,
   Library as LibraryIcon,
 } from "lucide-react";
 import { ResourceThumbnail } from "@/components/resource-thumbnail";
@@ -36,20 +37,25 @@ const TYPES = [
   "announcement",
 ] as const;
 
-type LibrarySearch = { q: string; type: string; category: string; department: string };
+const PAGE_SIZE = 18;
+const SEARCH_DEBOUNCE_MS = 350;
+
+type LibrarySearch = { q: string; type: string; category: string; department: string; page: number };
 
 // Matches the query key the component computes on first render (its filter state starts out
 // equal to the route search params) — the loader prefetch below is then served from cache on
 // initial mount instead of triggering a second client-side round trip after SSR.
 const libraryQuery = (search: LibrarySearch) =>
   queryOptions({
-    queryKey: ["library", search.q, search.type, search.category, search.department],
+    queryKey: ["library", search.q, search.type, search.category, search.department, search.page],
     queryFn: async () =>
       api.public.resources({
         q: search.q,
         type: search.type,
         category: search.category || undefined,
         department: search.department || undefined,
+        page: search.page,
+        pageSize: PAGE_SIZE,
       }),
   });
 
@@ -59,6 +65,7 @@ export const Route = createFileRoute("/library")({
     type: typeof s.type === "string" ? s.type : "all",
     category: typeof s.category === "string" ? s.category : "",
     department: typeof s.department === "string" ? s.department : "",
+    page: typeof s.page === "number" && s.page >= 0 ? Math.floor(s.page) : 0,
   }),
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(libraryQuery(deps)),
@@ -77,10 +84,27 @@ export const Route = createFileRoute("/library")({
 
 function Library() {
   const search = Route.useSearch();
-  const [q, setQ] = useState(search.q);
-  const [type, setType] = useState(search.type);
-  const [department, setDepartment] = useState(search.department);
+  const navigate = useNavigate({ from: Route.fullPath });
+  const [inputValue, setInputValue] = useState(search.q);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Keep the text box in sync if the query changes from elsewhere (e.g. "Clear filters",
+  // browser back/forward) without fighting the user's own typing.
+  useEffect(() => {
+    setInputValue(search.q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.q]);
+
+  // Debounce typed input before it becomes a real search — avoids firing a request (and a
+  // URL update) on every keystroke, which is how this used to behave.
+  useEffect(() => {
+    if (inputValue === search.q) return;
+    const t = setTimeout(() => {
+      navigate({ search: (prev) => ({ ...prev, q: inputValue, page: 0 }), replace: true });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputValue]);
 
   const { data: departments } = useQuery({
     queryKey: ["departments"],
@@ -88,19 +112,29 @@ function Library() {
     staleTime: Infinity,
   });
 
-  const { data, isLoading } = useQuery(
-    libraryQuery({ q, type, category: search.category, department }),
-  );
+  const { data, isLoading, isPlaceholderData } = useQuery({
+    ...libraryQuery(search),
+    placeholderData: (prev) => prev,
+  });
 
-  const activeFilterCount = [q, type !== "all" ? type : "", search.category, department].filter(
+  const setType = (type: string) => navigate({ search: (prev) => ({ ...prev, type, page: 0 }), replace: true });
+  const setDepartment = (department: string) => navigate({ search: (prev) => ({ ...prev, department, page: 0 }), replace: true });
+  const setPage = (page: number) => navigate({ search: (prev) => ({ ...prev, page }) });
+
+  const activeFilterCount = [search.q, search.type !== "all" ? search.type : "", search.category, search.department].filter(
     Boolean,
   ).length;
 
   const clearAll = () => {
-    setQ("");
-    setType("all");
-    setDepartment("");
+    setInputValue("");
+    navigate({ search: { q: "", type: "all", category: "", department: "", page: 0 } });
   };
+
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = data?.page ?? search.page;
+  const rangeStart = total === 0 ? 0 : currentPage * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(total, (currentPage + 1) * PAGE_SIZE);
 
   return (
     <PublicLayout>
@@ -120,16 +154,19 @@ function Library() {
                 id="library-search"
                 type="search"
                 suppressHydrationWarning
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Search by title, keyword or author"
                 className="h-12 w-full rounded-xl border border-border bg-white pl-10 pr-10 text-sm shadow-sm outline-none transition-shadow focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
               />
-              {q && (
+              {inputValue && (
                 <button
                   type="button"
                   aria-label="Clear search"
-                  onClick={() => setQ("")}
+                  onClick={() => {
+                    setInputValue("");
+                    navigate({ search: (prev) => ({ ...prev, q: "", page: 0 }), replace: true });
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-4 w-4" />
@@ -157,7 +194,7 @@ function Library() {
             <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-white p-4 shadow-sm">
               <select
                 suppressHydrationWarning
-                value={type}
+                value={search.type}
                 onChange={(e) => setType(e.target.value)}
                 className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
               >
@@ -170,7 +207,7 @@ function Library() {
               {departments && departments.length > 0 && (
                 <select
                   suppressHydrationWarning
-                  value={department}
+                  value={search.department}
                   onChange={(e) => setDepartment(e.target.value)}
                   className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
                 >
@@ -195,7 +232,7 @@ function Library() {
         </div>
 
         {/* Active filter chips */}
-        {(search.category || department) && (
+        {(search.category || search.department) && (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {search.category && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
@@ -203,10 +240,10 @@ function Library() {
                 Category: {search.category}
               </span>
             )}
-            {department && departments && (
+            {search.department && departments && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 <Building2 className="h-3 w-3" />
-                {departments.find((d) => d.id === department)?.name}
+                {departments.find((d) => d.id === search.department)?.name}
                 <button onClick={() => setDepartment("")} className="ml-1 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
@@ -221,8 +258,14 @@ function Library() {
         {/* Result count */}
         {!isLoading && data && (
           <div className="mb-6 text-sm text-muted-foreground">
-            <span className="font-semibold text-foreground">{data.length}</span> resource
-            {data.length !== 1 ? "s" : ""} found
+            {total === 0 ? (
+              "0 resources found"
+            ) : (
+              <>
+                Showing <span className="font-semibold text-foreground">{rangeStart}–{rangeEnd}</span> of{" "}
+                <span className="font-semibold text-foreground">{total}</span> resource{total !== 1 ? "s" : ""}
+              </>
+            )}
           </div>
         )}
 
@@ -239,7 +282,7 @@ function Library() {
               </div>
             ))}
           </div>
-        ) : (data?.length ?? 0) === 0 ? (
+        ) : (data?.items.length ?? 0) === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-primary/20 bg-secondary/25 py-20 text-center">
             <LibraryIcon className="h-12 w-12 text-muted-foreground/25" />
             <h3 className="mt-4 font-display text-lg font-semibold">No resources found</h3>
@@ -256,8 +299,10 @@ function Library() {
             )}
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {data!.map((r) => (
+          <div
+            className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3 transition-opacity ${isPlaceholderData ? "opacity-60" : ""}`}
+          >
+            {data!.items.map((r) => (
               <Link
                 key={r.id}
                 to="/resource/$slug"
@@ -273,7 +318,7 @@ function Library() {
                 <div className="flex flex-1 flex-col p-6">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3 shrink-0" />
-                    {formatDate(r.published_at)}
+                    {r.publication_year ?? formatDate(r.published_at)}
                     <span className="ml-auto rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-accent">
                       {accessLabel[r.access_level]}
                     </span>
@@ -297,7 +342,71 @@ function Library() {
             ))}
           </div>
         )}
+
+        {!isLoading && total > PAGE_SIZE && (
+          <Pagination currentPage={currentPage} totalPages={totalPages} onChange={setPage} />
+        )}
       </section>
     </PublicLayout>
+  );
+}
+
+function Pagination({
+  currentPage,
+  totalPages,
+  onChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  // A windowed page list: first, last, current ± 1, with "…" filling any gaps — keeps the
+  // control compact and readable even when there are dozens of pages.
+  const pages: (number | "gap")[] = [];
+  for (let p = 0; p < totalPages; p++) {
+    if (p === 0 || p === totalPages - 1 || Math.abs(p - currentPage) <= 1) {
+      pages.push(p);
+    } else if (pages[pages.length - 1] !== "gap") {
+      pages.push("gap");
+    }
+  }
+
+  const btn = "inline-flex h-9 min-w-9 items-center justify-center rounded-md px-2 text-sm font-medium transition-colors";
+
+  return (
+    <nav aria-label="Pagination" className="mt-10 flex items-center justify-center gap-1.5">
+      <button
+        onClick={() => onChange(currentPage - 1)}
+        disabled={currentPage === 0}
+        aria-label="Previous page"
+        className={`${btn} border border-border bg-white text-foreground/70 hover:bg-secondary disabled:pointer-events-none disabled:opacity-40`}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      {pages.map((p, i) =>
+        p === "gap" ? (
+          <span key={`gap-${i}`} className="px-1.5 text-sm text-muted-foreground">
+            …
+          </span>
+        ) : (
+          <button
+            key={p}
+            onClick={() => onChange(p)}
+            aria-current={p === currentPage ? "page" : undefined}
+            className={`${btn} ${p === currentPage ? "bg-primary text-white" : "border border-border bg-white text-foreground/70 hover:bg-secondary"}`}
+          >
+            {p + 1}
+          </button>
+        ),
+      )}
+      <button
+        onClick={() => onChange(currentPage + 1)}
+        disabled={currentPage >= totalPages - 1}
+        aria-label="Next page"
+        className={`${btn} border border-border bg-white text-foreground/70 hover:bg-secondary disabled:pointer-events-none disabled:opacity-40`}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </nav>
   );
 }

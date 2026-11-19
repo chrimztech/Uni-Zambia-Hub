@@ -376,7 +376,7 @@ function Home() {
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
               <Link
                 to="/library"
-                search={{ q: "", type: "all", category: "", department: "" }}
+                search={{ q: "", type: "all", category: "", department: "", page: 0 }}
                 className="inline-flex items-center gap-2 text-sm font-bold text-white transition-colors hover:text-accent"
               >
                 <Library className="h-4 w-4 text-accent" /> Browse all resources
@@ -567,7 +567,7 @@ function Home() {
                   <div className="flex flex-1 flex-col p-6">
                     <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5 text-primary/60" />{" "}
-                      {formatDate(resource.published_at)}
+                      {resource.publication_year ?? formatDate(resource.published_at)}
                     </div>
                     <h3 className="mt-3 line-clamp-2 text-lg font-bold leading-snug transition-colors group-hover:text-primary">
                       {resource.title}
@@ -649,7 +649,7 @@ function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 to="/library"
-                search={{ q: "", type: "all", category: "", department: "" }}
+                search={{ q: "", type: "all", category: "", department: "", page: 0 }}
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-5 text-sm font-bold text-accent-foreground transition-transform hover:-translate-y-0.5"
               >
                 <Library className="h-4 w-4" /> Explore the library
@@ -709,7 +709,7 @@ function SectionHeading({
       {action.to === "/library" ? (
         <Link
           to="/library"
-          search={{ q: "", type: "all", category: "", department: "" }}
+          search={{ q: "", type: "all", category: "", department: "", page: 0 }}
           className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary transition-colors hover:text-primary/75"
         >
           {action.label} <ArrowRight className="h-4 w-4" />

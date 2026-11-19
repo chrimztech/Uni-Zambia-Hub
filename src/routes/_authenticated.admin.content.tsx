@@ -92,7 +92,7 @@ function ContentAdmin() {
       access_level: "public", status: "draft", downloadable: true,
       copyright_status: "", licence_information: "", language: "en",
       keywords: "", authors: "", publisher: "",
-      publication_date: null, activity_date: todayISO(), source_institution: "",
+      publication_year: null, activity_date: todayISO(), source_institution: "",
       external_identifier: "", bibliographic_info: "",
       category_id: null, department_id: null,
     });
@@ -116,7 +116,7 @@ function ContentAdmin() {
       keywords: editing.keywords,
       authors: editing.authors,
       publisher: editing.publisher,
-      publication_date: (editing as ContentEditor).publication_date ?? null,
+      publication_year: (editing as ContentEditor).publication_year ?? null,
       activity_date: (editing as ContentEditor).activity_date ?? null,
       source_institution: (editing as ContentEditor).source_institution ?? null,
       external_identifier: (editing as ContentEditor).external_identifier ?? null,
@@ -397,12 +397,18 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
           <Field label="Authors"><input value={editing.authors ?? ""} onChange={(e) => setEditing({ ...editing, authors: e.target.value })} className="input" /></Field>
           <Field label="Publisher"><input value={editing.publisher ?? ""} onChange={(e) => setEditing({ ...editing, publisher: e.target.value })} className="input" /></Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Publication date">
+            <Field label="Publication year">
               <input
-                type="date"
-                max={todayISO()}
-                value={(editing as ContentEditor).publication_date ?? ""}
-                onChange={(e) => setEditing({ ...editing, publication_date: e.target.value || null } as any)}
+                type="number"
+                inputMode="numeric"
+                placeholder={String(new Date().getFullYear())}
+                min={1900}
+                max={new Date().getFullYear() + 1}
+                value={(editing as ContentEditor).publication_year ?? ""}
+                onChange={(e) => {
+                  const n = e.target.value ? parseInt(e.target.value, 10) : null;
+                  setEditing({ ...editing, publication_year: Number.isNaN(n as number) ? null : n } as any);
+                }}
                 className="input"
               />
             </Field>
