@@ -482,8 +482,18 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
                 <button onClick={() => transition("reject", editing)} className="w-full rounded-md bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground">Reject</button>
               </>
             )}
-            {editing.id && editing.status === "approved" && isAdmin && (
-              <button onClick={() => transition("publish", editing)} className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">Publish</button>
+            {editing.id && (editing.status === "returned" || editing.status === "rejected") && (
+              <button onClick={() => transition("submit", editing)} className="w-full rounded-md bg-secondary px-4 py-2.5 text-sm font-medium hover:bg-secondary/70">
+                <Send className="mr-1 inline h-3.5 w-3.5" /> Resubmit for review
+              </button>
+            )}
+            {/* Admins can publish directly from any non-published status (draft, submitted,
+                approved, returned, rejected, archived) — the backend already allows this and
+                only the UI was restricting publish to the "approved" step. */}
+            {editing.id && editing.status !== "published" && isAdmin && (
+              <button onClick={() => transition("publish", editing)} className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-accent-foreground">
+                {editing.status === "archived" ? "Republish" : "Publish"}
+              </button>
             )}
             {editing.id && editing.status === "published" && isAdmin && (
               <button onClick={() => transition("archive", editing)} className="w-full rounded-md bg-muted px-4 py-2.5 text-sm font-medium">
