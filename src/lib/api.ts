@@ -809,7 +809,7 @@ export const api = {
     uploadContentFile: (id: string, file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      return request<ContentFile>(`/api/admin/content/${id}/files`, { method: "POST", rawBody: formData, timeout: 300_000 });
+      return request<ContentFile>(`/api/admin/content/${id}/files`, { method: "POST", rawBody: formData, timeout: 900_000 });
     },
     fixDraftAccessLevels: () =>
       request<{ fixed: number }>("/api/admin/content/fix-access-levels", { method: "POST" }),
@@ -848,7 +848,7 @@ export const api = {
     uploadScanFile: (id: string, file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      return request<DigitizationRecord>(`/api/admin/digitization/${id}/scan-file`, { method: "POST", rawBody: formData, timeout: 300_000 });
+      return request<DigitizationRecord>(`/api/admin/digitization/${id}/scan-file`, { method: "POST", rawBody: formData, timeout: 900_000 });
     },
     deleteDigitization: (id: string) =>
       request<void>(`/api/admin/digitization/${id}`, { method: "DELETE" }),
