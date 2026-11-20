@@ -149,14 +149,19 @@ function ContentAdmin() {
     }
   };
 
+  const [uploadProgress, setUploadProgress] = useState<{ name: string; percent: number } | null>(null);
+
   const uploadFile = async (file: File) => {
     if (!editing?.id) { toast.error("Save the draft first"); return; }
+    setUploadProgress({ name: file.name, percent: 0 });
     try {
-      await api.admin.uploadContentFile(editing.id as string, file);
+      await api.admin.uploadContentFile(editing.id as string, file, (percent) => setUploadProgress({ name: file.name, percent }));
       toast.success("File uploaded");
       qc.invalidateQueries({ queryKey: ["admin", "files", editing.id] });
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
+    } finally {
+      setUploadProgress(null);
     }
   };
 
@@ -184,6 +189,7 @@ function ContentAdmin() {
         onBack={() => { writeDraft(CONTENT_DRAFT_KEY, editing); setEditing(null); }}
         save={save}
         uploadFile={uploadFile}
+        uploadProgress={uploadProgress}
         transition={transition}
         isAdmin={isAdmin}
         onDeleted={() => { clearDraft(CONTENT_DRAFT_KEY); setEditing(null); qc.invalidateQueries({ queryKey: ["admin", "content"] }); }}
@@ -260,12 +266,13 @@ function ContentAdmin() {
   );
 }
 
-function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition, isAdmin, onDeleted }: {
+function EditorPanel({ editing, setEditing, onBack, save, uploadFile, uploadProgress, transition, isAdmin, onDeleted }: {
   editing: EditingItem;
   setEditing: (e: EditingItem) => void;
   onBack: () => void;
   save: () => void;
   uploadFile: (f: File) => Promise<void>;
+  uploadProgress: { name: string; percent: number } | null;
   transition: (action: any, item: EditingItem) => Promise<void>;
   isAdmin: boolean;
   onDeleted: () => void;
@@ -370,14 +377,28 @@ function EditorPanel({ editing, setEditing, onBack, save, uploadFile, transition
             <div className="flex items-center justify-between">
               <h3 className="font-semibold">Attached files</h3>
               {editing.id ? (
-                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-                  <Upload className="h-3.5 w-3.5" /> Upload file
-                  <input type="file" hidden onChange={async (e) => { const f = e.target.files?.[0]; if (f) { await uploadFile(f); refetchFiles(); } }} />
+                <label className={`inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground ${uploadProgress ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+                  <Upload className="h-3.5 w-3.5" /> {uploadProgress ? "Uploading…" : "Upload file"}
+                  <input type="file" hidden disabled={!!uploadProgress} onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) { await uploadFile(f); refetchFiles(); } }} />
                 </label>
               ) : (
                 <span className="text-xs text-muted-foreground">Save first to enable</span>
               )}
             </div>
+            {uploadProgress && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="truncate pr-2">{uploadProgress.name}</span>
+                  <span className="shrink-0 font-mono">{uploadProgress.percent}%</span>
+                </div>
+                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width] duration-150"
+                    style={{ width: `${uploadProgress.percent}%` }}
+                  />
+                </div>
+              </div>
+            )}
             {editing.id ? (
               <ul className="mt-3 divide-y divide-border text-sm">
                 {files?.map((f) => (

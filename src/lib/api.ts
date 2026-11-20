@@ -704,6 +704,49 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return response.text() as T;
 }
 
+/**
+ * Like request(), but for file uploads that need progress feedback. fetch() has no reliable
+ * cross-browser way to report upload progress, so this uses XMLHttpRequest instead, which
+ * exposes xhr.upload.onprogress.
+ */
+function uploadWithProgress<T>(
+  path: string,
+  formData: FormData,
+  options: { timeout?: number; onProgress?: (percent: number) => void } = {}
+): Promise<T> {
+  const { timeout = REQUEST_TIMEOUT_MS, onProgress } = options;
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", toApiUrl(path));
+    xhr.timeout = timeout;
+    const token = getAuthToken();
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.upload.onprogress = (e) => {
+      if (onProgress && e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      let parsed: any = null;
+      try { parsed = xhr.responseText ? JSON.parse(xhr.responseText) : null; } catch { parsed = xhr.responseText || null; }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(parsed as T);
+        return;
+      }
+      if (xhr.status === 401) {
+        if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("api:unauthorized"));
+      }
+      reject(new ApiError((parsed && parsed.message) || `Request failed (${xhr.status})`, xhr.status));
+    };
+    xhr.onerror = () => reject(new ApiError("Unable to connect. Please check your internet connection.", 0, true));
+    xhr.ontimeout = () => reject(new ApiError("Request timed out — please try again.", 0));
+
+    xhr.send(formData);
+  });
+}
+
 export const api = {
   auth: {
     login: (payload: { email: string; password: string }) =>
@@ -806,10 +849,10 @@ export const api = {
     transitionContent: (id: string, payload: { action: string; comments?: string }) =>
       request<void>(`/api/admin/content/${id}/transition`, { method: "POST", body: payload }),
     contentFiles: (id: string) => request<ContentFile[]>(`/api/admin/content/${id}/files`),
-    uploadContentFile: (id: string, file: File) => {
+    uploadContentFile: (id: string, file: File, onProgress?: (percent: number) => void) => {
       const formData = new FormData();
       formData.append("file", file);
-      return request<ContentFile>(`/api/admin/content/${id}/files`, { method: "POST", rawBody: formData, timeout: 900_000 });
+      return uploadWithProgress<ContentFile>(`/api/admin/content/${id}/files`, formData, { timeout: 900_000, onProgress });
     },
     fixDraftAccessLevels: () =>
       request<{ fixed: number }>("/api/admin/content/fix-access-levels", { method: "POST" }),
@@ -845,10 +888,10 @@ export const api = {
       request<DigitizationRecord>(`/api/admin/digitization/${id}/status`, { method: "PATCH", body: { status } }),
     promoteToLibrary: (id: string) =>
       request<{ content_item_id: string; record: DigitizationRecord }>(`/api/admin/digitization/${id}/promote`, { method: "POST" }),
-    uploadScanFile: (id: string, file: File) => {
+    uploadScanFile: (id: string, file: File, onProgress?: (percent: number) => void) => {
       const formData = new FormData();
       formData.append("file", file);
-      return request<DigitizationRecord>(`/api/admin/digitization/${id}/scan-file`, { method: "POST", rawBody: formData, timeout: 900_000 });
+      return uploadWithProgress<DigitizationRecord>(`/api/admin/digitization/${id}/scan-file`, formData, { timeout: 900_000, onProgress });
     },
     deleteDigitization: (id: string) =>
       request<void>(`/api/admin/digitization/${id}`, { method: "DELETE" }),
@@ -864,10 +907,10 @@ export const api = {
     sessions: () => request<AdminSession[]>("/api/admin/sessions"),
     revokeSession: (userId: string) =>
       request<void>(`/api/admin/sessions/${userId}`, { method: "DELETE" }),
-    uploadThumbnail: (id: string, file: File) => {
+    uploadThumbnail: (id: string, file: File, onProgress?: (percent: number) => void) => {
       const formData = new FormData();
       formData.append("file", file);
-      return request<{ url: string }>(`/api/admin/content/${id}/thumbnail`, { method: "POST", rawBody: formData, timeout: 120_000 });
+      return uploadWithProgress<{ url: string }>(`/api/admin/content/${id}/thumbnail`, formData, { timeout: 120_000, onProgress });
     },
     deleteThumbnail: (id: string) =>
       request<void>(`/api/admin/content/${id}/thumbnail`, { method: "DELETE" }),

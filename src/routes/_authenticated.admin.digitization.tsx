@@ -105,6 +105,7 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
   const [advancing, setAdvancing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -124,14 +125,16 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
 
   const uploadScan = async (file: File) => {
     setUploading(true);
+    setUploadPercent(0);
     try {
-      await api.admin.uploadScanFile(record.id, file);
+      await api.admin.uploadScanFile(record.id, file, setUploadPercent);
       toast.success("Scan file uploaded — status advanced to Scanned");
       qc.invalidateQueries({ queryKey: ["admin", "digitization"] });
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
     } finally {
       setUploading(false);
+      setUploadPercent(0);
     }
   };
 
@@ -354,7 +357,7 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
                     <p className="text-sm text-muted-foreground">No scan file yet</p>
                   )}
                   <div className="mt-2">
-                    <input ref={fileRef} type="file" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadScan(f); }} />
+                    <input ref={fileRef} type="file" hidden onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) uploadScan(f); }} />
                     <button
                       onClick={() => fileRef.current?.click()}
                       disabled={uploading}
@@ -364,6 +367,17 @@ function RecordRow({ record, onEdit }: { record: DigitizationRecord; onEdit: (r:
                       {uploading ? "Uploading…" : record.scan_file_url ? "Replace scan" : "Upload scan"}
                     </button>
                   </div>
+                  {uploading && (
+                    <div className="mt-2">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+                        <div
+                          className="h-full rounded-full bg-primary transition-[width] duration-150"
+                          style={{ width: `${uploadPercent}%` }}
+                        />
+                      </div>
+                      <div className="mt-0.5 text-right font-mono text-xs text-muted-foreground">{uploadPercent}%</div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Metadata */}
