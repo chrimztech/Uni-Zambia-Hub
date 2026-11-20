@@ -384,6 +384,48 @@ export type ResourceAccessRow = {
   last_accessed_at: string | null;
 };
 
+export type UploadItem = {
+  id: string;
+  title: string;
+  slug: string;
+  content_type: string;
+  status: string;
+  access_level: string;
+  publication_year: number | null;
+  created_at: string;
+  published_at: string | null;
+  file_count: number;
+  total_bytes: number;
+  category_name: string | null;
+  department_name: string | null;
+};
+
+export type UploaderActivity = {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  roles: string;
+  total_uploads: number;
+  published: number;
+  drafts: number;
+  pending_approval: number;
+  archived: number;
+  file_count: number;
+  total_bytes: number;
+  total_storage: string;
+  first_upload_at: string | null;
+  last_upload_at: string | null;
+  items: UploadItem[];
+};
+
+export type UploadsTracker = {
+  total_uploaders: number;
+  total_uploads: number;
+  total_files: number;
+  total_storage: string;
+  uploaders: UploaderActivity[];
+};
+
 export type AuditLog = {
   id: string;
   user_id: string | null;
@@ -841,6 +883,7 @@ export const api = {
       request<SystemSetting>(`/api/admin/settings/${key}`, { method: "PUT", body: { value } }),
     reports: () => request<Reports>("/api/admin/reports"),
     resourceAccess: () => request<ResourceAccessRow[]>("/api/admin/reports/access"),
+    uploadsTracker: () => request<UploadsTracker>("/api/admin/reports/uploads"),
     reportDownloadUrl: () => "/api/admin/reports/download/pdf",
     reviews: () => request<ReviewAdmin[]>("/api/admin/reviews"),
     deleteReview: (id: string) => request<void>(`/api/admin/reviews/${id}`, { method: "DELETE" }),

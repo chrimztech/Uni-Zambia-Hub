@@ -26,6 +26,7 @@ import {
   Sparkles,
   Star,
   Tags,
+  UploadCloud,
   UserCircle,
   Users,
   X,
@@ -125,6 +126,7 @@ function AdminLayout() {
       description: "Reporting and performance snapshots.",
       items: [
         { to: "/admin/reports", label: "Reports", hint: "Usage and platform insights", icon: BarChart3, iconBg: "bg-orange-500/80" },
+        { to: "/admin/uploads", label: "Uploads Tracker", hint: "Who uploaded what, by the numbers", icon: UploadCloud, iconBg: "bg-lime-600/80" },
       ],
     },
     {

@@ -36,6 +36,7 @@ import { Route as AuthenticatedBookmarksRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
+import { Route as AuthenticatedAdminUploadsRouteImport } from './routes/_authenticated.admin.uploads'
 import { Route as AuthenticatedAdminTrainingRouteImport } from './routes/_authenticated.admin.training'
 import { Route as AuthenticatedAdminTaxonomyRouteImport } from './routes/_authenticated.admin.taxonomy'
 import { Route as AuthenticatedAdminSitesRouteImport } from './routes/_authenticated.admin.sites'
@@ -187,6 +188,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminUploadsRoute =
+  AuthenticatedAdminUploadsRouteImport.update({
+    id: '/uploads',
+    path: '/uploads',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminTrainingRoute =
   AuthenticatedAdminTrainingRouteImport.update({
     id: '/training',
@@ -309,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/admin/sites': typeof AuthenticatedAdminSitesRoute
   '/admin/taxonomy': typeof AuthenticatedAdminTaxonomyRoute
   '/admin/training': typeof AuthenticatedAdminTrainingRoute
+  '/admin/uploads': typeof AuthenticatedAdminUploadsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -350,6 +358,7 @@ export interface FileRoutesByTo {
   '/admin/sites': typeof AuthenticatedAdminSitesRoute
   '/admin/taxonomy': typeof AuthenticatedAdminTaxonomyRoute
   '/admin/training': typeof AuthenticatedAdminTrainingRoute
+  '/admin/uploads': typeof AuthenticatedAdminUploadsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
@@ -394,6 +403,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/sites': typeof AuthenticatedAdminSitesRoute
   '/_authenticated/admin/taxonomy': typeof AuthenticatedAdminTaxonomyRoute
   '/_authenticated/admin/training': typeof AuthenticatedAdminTrainingRoute
+  '/_authenticated/admin/uploads': typeof AuthenticatedAdminUploadsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -438,6 +448,7 @@ export interface FileRouteTypes {
     | '/admin/sites'
     | '/admin/taxonomy'
     | '/admin/training'
+    | '/admin/uploads'
     | '/admin/users'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -479,6 +490,7 @@ export interface FileRouteTypes {
     | '/admin/sites'
     | '/admin/taxonomy'
     | '/admin/training'
+    | '/admin/uploads'
     | '/admin/users'
     | '/admin'
   id:
@@ -522,6 +534,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/sites'
     | '/_authenticated/admin/taxonomy'
     | '/_authenticated/admin/training'
+    | '/_authenticated/admin/uploads'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
@@ -740,6 +753,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/uploads': {
+      id: '/_authenticated/admin/uploads'
+      path: '/uploads'
+      fullPath: '/admin/uploads'
+      preLoaderRoute: typeof AuthenticatedAdminUploadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/training': {
       id: '/_authenticated/admin/training'
       path: '/training'
@@ -856,6 +876,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSitesRoute: typeof AuthenticatedAdminSitesRoute
   AuthenticatedAdminTaxonomyRoute: typeof AuthenticatedAdminTaxonomyRoute
   AuthenticatedAdminTrainingRoute: typeof AuthenticatedAdminTrainingRoute
+  AuthenticatedAdminUploadsRoute: typeof AuthenticatedAdminUploadsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -875,6 +896,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminSitesRoute: AuthenticatedAdminSitesRoute,
   AuthenticatedAdminTaxonomyRoute: AuthenticatedAdminTaxonomyRoute,
   AuthenticatedAdminTrainingRoute: AuthenticatedAdminTrainingRoute,
+  AuthenticatedAdminUploadsRoute: AuthenticatedAdminUploadsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
